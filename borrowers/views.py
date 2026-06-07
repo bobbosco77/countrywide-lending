@@ -69,6 +69,8 @@ def user_login(request):
                 return redirect('dashboard')
             elif is_cashier(user):
                 return redirect('borrower_list')
+            elif is_auditor(user):
+                return redirect('borrower_list')
             elif is_loan_officer(user):
                 return redirect('register')
             else:
