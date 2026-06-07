@@ -90,11 +90,14 @@ def user_login(request):
             if user.is_superuser or is_manager(user):
                 return redirect('dashboard')
 
-            return redirect('borrower_list')
+            elif is_cashier(user):
+                return redirect('borrower_list')
 
-        messages.error(request, "Invalid credentials")
+            elif is_loan_officer(user):
+                return redirect('register_borrower')
 
-    return render(request, 'login.html')
+            else:
+                return redirect('login')
 
 
 def user_logout(request):
