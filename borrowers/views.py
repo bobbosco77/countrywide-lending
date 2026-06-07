@@ -21,22 +21,20 @@ from .permissions import (
 )
 
 # ==================================================
-# ROLE DECORATOR (FIXED - SAFE & PRODUCTION READY)
+# ROLE DECORATOR
 # ==================================================
 
-def role_required(check_func):
+def role_required(check):
     def decorator(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
-
             if not request.user.is_authenticated:
                 return redirect('login')
 
-            if not check_func(request.user):
+            if not check(request.user):
                 return HttpResponse("Access Denied", status=403)
 
             return view_func(request, *args, **kwargs)
-
         return wrapper
     return decorator
 
@@ -47,26 +45,6 @@ def role_required(check_func):
 
 def is_manager_or_superuser(user):
     return user.is_superuser or is_manager(user)
-
-
-def can_register_borrower(user):
-    return is_manager_or_superuser(user) or is_loan_officer(user) or is_cashier(user)
-
-
-def can_view_borrowers(user):
-    return is_manager_or_superuser(user) or is_cashier(user)
-
-
-def can_make_payment(user):
-    return is_manager_or_superuser(user) or is_cashier(user)
-
-
-def can_create_loan(user):
-    return is_manager_or_superuser(user) or is_loan_officer(user)
-
-
-def can_view_reports(user):
-    return is_manager_or_superuser(user) or is_auditor(user)
 
 
 # ==================================================
@@ -84,20 +62,22 @@ def user_login(request):
             password=request.POST.get('password')
         )
 
-        if user:
+        if user is not None:
             login(request, user)
 
             if user.is_superuser or is_manager(user):
                 return redirect('dashboard')
-
             elif is_cashier(user):
                 return redirect('borrower_list')
-
             elif is_loan_officer(user):
                 return redirect('register_borrower')
-
             else:
-                return redirect('login.html')
+                return redirect('dashboard')
+
+        messages.error(request, "Invalid credentials")
+        return render(request, 'login.html')
+
+    return render(request, 'login.html')
 
 
 def user_logout(request):
@@ -106,13 +86,12 @@ def user_logout(request):
 
 
 # ==================================================
-# BORROWER MANAGEMENT
+# BORROWER
 # ==================================================
 
 @login_required
-@role_required(can_register_borrower)
+@role_required(lambda u: is_manager_or_superuser(u) or is_loan_officer(u))
 def register_borrower(request):
-
     form = BorrowerForm(request.POST or None, request.FILES or None)
 
     if request.method == 'POST' and form.is_valid():
@@ -131,9 +110,8 @@ def register_borrower(request):
 
 
 @login_required
-@role_required(can_view_borrowers)
+@role_required(lambda u: is_manager_or_superuser(u) or is_cashier(u))
 def borrower_list(request):
-
     borrowers = Borrower.objects.all()
     query = request.GET.get('q')
 
@@ -154,7 +132,6 @@ def borrower_list(request):
 
 @login_required
 def borrower_profile(request, borrower_id):
-
     borrower = get_object_or_404(Borrower, id=borrower_id)
 
     loans = Loan.objects.filter(borrower=borrower)
@@ -172,15 +149,13 @@ def borrower_profile(request, borrower_id):
 
 
 # ==================================================
-# LOAN
+# LOANS
 # ==================================================
 
 @login_required
-@role_required(can_create_loan)
+@role_required(lambda u: is_manager_or_superuser(u) or is_loan_officer(u))
 def create_loan(request):
-
     if request.method == 'POST':
-
         borrower = get_object_or_404(Borrower, id=request.POST['borrower_id'])
 
         amount = Decimal(request.POST['loan_amount'])
@@ -219,18 +194,16 @@ def create_loan(request):
 # ==================================================
 
 @login_required
-@role_required(can_make_payment)
+@role_required(lambda u: is_manager_or_superuser(u) or is_cashier(u))
 def make_payment(request):
-
     loans = Loan.objects.filter(status__in=['active', 'approved'])
 
     if request.method == 'POST':
-
         loan = get_object_or_404(Loan, id=request.POST['loan_id'])
         amount = Decimal(request.POST['amount_paid'])
 
         if amount <= 0:
-            messages.error(request, "Payment amount must be greater than zero.")
+            messages.error(request, "Payment must be greater than zero")
             return redirect('make_payment')
 
         Payment.objects.create(
@@ -265,7 +238,6 @@ def make_payment(request):
 @login_required
 @role_required(is_manager_or_superuser)
 def dashboard(request):
-
     return render(request, 'borrowers/dashboard.html', {
         'total_borrowers': Borrower.objects.count(),
         'active_loans': Loan.objects.filter(status='active').count(),
@@ -274,45 +246,15 @@ def dashboard(request):
         'total_loan_portfolio': Loan.objects.aggregate(total=Sum('loan_amount'))['total'] or 0,
         'total_repayments': Payment.objects.aggregate(total=Sum('amount_paid'))['total'] or 0,
         'loan_balance': sum(l.balance() for l in Loan.objects.all()),
-        'recent_loans': Loan.objects.order_by('-id')[:5],
-        'recent_payments': Payment.objects.order_by('-payment_date')[:5],
     })
 
 
 # ==================================================
-# REPORTS
-# ==================================================
-
-@login_required
-@role_required(can_view_reports)
-def defaulters_report(request):
-
-    overdue = RepaymentSchedule.objects.filter(
-        status='pending',
-        due_date__lt=date.today()
-    )
-
-    return render(request, 'borrowers/defaulters.html', {
-        'defaulters': [
-            {
-                'borrower': s.loan.borrower,
-                'loan': s.loan,
-                'amount_due': s.amount_due,
-                'due_date': s.due_date,
-                'days_overdue': (date.today() - s.due_date).days,
-            }
-            for s in overdue
-        ]
-    })
-
-
-# ==================================================
-# LOAN DETAIL
+# LOGIN / AUDIT / REPORTS
 # ==================================================
 
 @login_required
 def loan_detail(request, loan_id):
-
     loan = get_object_or_404(Loan, id=loan_id)
 
     return render(request, 'borrowers/loan_detail.html', {
@@ -322,64 +264,7 @@ def loan_detail(request, loan_id):
     })
 
 
-# ==================================================
-# PDF EXPORT
-# ==================================================
-
 @login_required
-def loan_statement_pdf(request, loan_id):
-
-    loan = get_object_or_404(Loan, id=loan_id)
-
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="loan_{loan.id}.pdf"'
-
-    p = canvas.Canvas(response)
-
-    p.drawString(200, 800, "LOAN STATEMENT")
-    p.drawString(50, 760, f"Borrower: {loan.borrower}")
-    p.drawString(50, 740, f"Amount: {loan.loan_amount}")
-
-    p.showPage()
-    p.save()
-
-    return response
-
-
-@login_required
-def borrowers_pdf(request):
-
-    borrowers = Borrower.objects.all().order_by('first_name')
-
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="borrowers_report.pdf"'
-
-    p = canvas.Canvas(response)
-
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(180, 800, "BORROWERS REPORT")
-
-    y = 760
-
-    p.setFont("Helvetica-Bold", 11)
-    p.drawString(40, y, "Name")
-    p.drawString(220, y, "Phone")
-    p.drawString(360, y, "Occupation")
-
-    y -= 20
-
-    p.setFont("Helvetica", 10)
-
-    for borrower in borrowers:
-        p.drawString(40, y, f"{borrower.first_name} {borrower.last_name}")
-        p.drawString(220, y, borrower.phone or "-")
-        p.drawString(360, y, borrower.occupation or "-")
-
-        y -= 20
-
-        if y < 50:
-            p.showPage()
-            y = 800
-
-    p.save()
-    return response
+def user_logout(request):
+    logout(request)
+    return redirect('login')
