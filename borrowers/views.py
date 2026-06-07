@@ -79,12 +79,6 @@ def user_login(request):
 
     return render(request, 'login.html')
 
-
-def user_logout(request):
-    logout(request)
-    return redirect('login')
-
-
 # ==================================================
 # BORROWER
 # ==================================================
@@ -268,3 +262,88 @@ def loan_detail(request, loan_id):
 def user_logout(request):
     logout(request)
     return redirect('login')
+
+@login_required
+@role_required(lambda u: is_manager_or_superuser(u) or is_auditor(u))
+def defaulters_report(request):
+
+    overdue = RepaymentSchedule.objects.filter(
+        status='pending',
+        due_date__lt=date.today()
+    )
+
+    return render(
+        request,
+        'borrowers/defaulters.html',
+        {
+            'defaulters': overdue
+        }
+    )
+
+@login_required
+def loan_statement_pdf(request, loan_id):
+
+    loan = get_object_or_404(Loan, id=loan_id)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = (
+        f'attachment; filename="loan_{loan.id}.pdf"'
+    )
+
+    p = canvas.Canvas(response)
+
+    p.drawString(200, 800, "LOAN STATEMENT")
+    p.drawString(
+        50,
+        760,
+        f"Borrower: {loan.borrower.first_name} {loan.borrower.last_name}"
+    )
+    p.drawString(
+        50,
+        740,
+        f"Loan Amount: ₦{loan.loan_amount}"
+    )
+    p.drawString(
+        50,
+        720,
+        f"Balance: ₦{loan.balance()}"
+    )
+
+    p.showPage()
+    p.save()
+
+    return response
+
+@login_required
+def borrowers_pdf(request):
+
+    borrowers = Borrower.objects.all()
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = (
+        'attachment; filename="borrowers_report.pdf"'
+    )
+
+    p = canvas.Canvas(response)
+
+    p.drawString(200, 800, "BORROWERS REPORT")
+
+    y = 760
+
+    for borrower in borrowers:
+
+        p.drawString(
+            50,
+            y,
+            f"{borrower.first_name} {borrower.last_name}"
+        )
+
+        y -= 20
+
+        if y < 50:
+            p.showPage()
+            y = 800
+
+    p.save()
+
+    return response
