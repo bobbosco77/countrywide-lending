@@ -86,11 +86,21 @@ def user_login(request):
 # ==================================================
 
 @login_required
-@role_required(lambda u: is_manager_or_superuser(u) or is_loan_officer(u))
+@role_required(
+    lambda u:
+    is_manager_or_superuser(u)
+    or is_cashier(u)
+    or is_loan_officer(u)
+)
 def register_borrower(request):
-    form = BorrowerForm(request.POST or None, request.FILES or None)
+
+    form = BorrowerForm(
+        request.POST or None,
+        request.FILES or None
+    )
 
     if request.method == 'POST' and form.is_valid():
+
         borrower = form.save()
 
         log_action(
@@ -100,14 +110,31 @@ def register_borrower(request):
             f"Borrower {borrower} created"
         )
 
+        # Loan Officer returns to registration page
+        if is_loan_officer(request.user):
+            messages.success(
+                request,
+                "Borrower registered successfully."
+            )
+            return redirect('register')
+
+        # Cashier and Manager go to borrower list
         return redirect('borrower_list')
 
-    return render(request, 'register.html', {'form': form})
-
+    return render(
+        request,
+        'register.html',
+        {'form': form}
+    )
 
 @login_required
-@role_required(lambda u: is_manager_or_superuser(u) or is_cashier(u))
+@role_required(
+    lambda u:
+    is_manager_or_superuser(u)
+    or is_cashier(u)
+)
 def borrower_list(request):
+
     borrowers = Borrower.objects.all()
     query = request.GET.get('q')
 
@@ -120,10 +147,14 @@ def borrower_list(request):
             Q(bvn__icontains=query)
         )
 
-    return render(request, 'borrowers/borrower_list.html', {
-        'borrowers': borrowers,
-        'query': query
-    })
+    return render(
+        request,
+        'borrowers/borrower_list.html',
+        {
+            'borrowers': borrowers,
+            'query': query
+        }
+    )
 
 
 @login_required
