@@ -12,29 +12,31 @@
             </div>
         </div>
         <a href="{% url 'borrower_list' %}" class="btn btn-primary">
-            <i class="fa-solid fa-arrow-left me-1"></i> Back to List
+            <i class="fa-solid fa-arrow-left me-1"></i>
+            <span class="d-none d-sm-inline">Back to List</span>
+            <span class="d-sm-none">Back</span>
         </a>
     </div>
 
     <!-- Profile Header Card -->
     <div class="card mb-4">
         <div class="card-body p-4">
-            <div class="row align-items-center">
+            <div class="row align-items-center g-3">
                 <div class="col-auto">
                     {% if borrower.borrower_photo %}
                         <img src="{{ borrower.borrower_photo.url }}"
-                             style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:3px solid var(--border);">
+                             style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--border);">
                     {% else %}
-                        <div style="width:90px; height:90px; border-radius:50%; background:linear-gradient(135deg, var(--primary), var(--primary-light)); display:flex; align-items:center; justify-content:center; font-size:32px; color:white; font-weight:700;">
+                        <div style="width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg, var(--primary), var(--primary-light)); display:flex; align-items:center; justify-content:center; font-size:28px; color:white; font-weight:700;">
                             {{ borrower.first_name|first }}{{ borrower.last_name|first }}
                         </div>
                     {% endif %}
                 </div>
                 <div class="col">
-                    <h3 style="font-weight:700; margin:0 0 6px;">
+                    <h3 style="font-weight:700; margin:0 0 6px; font-size:clamp(16px, 3vw, 22px);">
                         {{ borrower.first_name }} {{ borrower.last_name }}
                     </h3>
-                    <div class="d-flex flex-wrap gap-3" style="font-size:14px; color:var(--text-muted);">
+                    <div class="d-flex flex-wrap gap-2" style="font-size:13px; color:var(--text-muted);">
                         <span><i class="fa-solid fa-phone me-1"></i>{{ borrower.phone }}</span>
                         {% if borrower.email %}
                         <span><i class="fa-solid fa-envelope me-1"></i>{{ borrower.email }}</span>
@@ -53,7 +55,7 @@
 
     <!-- Stats Row -->
     <div class="row g-3 mb-4">
-        <div class="col-md-4">
+        <div class="col-md-4 col-12">
             <div class="stat-card">
                 <div class="stat-icon blue"><i class="fa-solid fa-file-invoice-dollar"></i></div>
                 <div>
@@ -62,7 +64,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-4 col-12">
             <div class="stat-card">
                 <div class="stat-icon green"><i class="fa-solid fa-hand-holding-dollar"></i></div>
                 <div>
@@ -71,7 +73,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-4 col-12">
             <div class="stat-card">
                 <div class="stat-icon red"><i class="fa-solid fa-scale-balanced"></i></div>
                 <div>
@@ -91,19 +93,19 @@
     <div class="card mb-4">
         <div class="card-body p-4">
             <div class="row g-3">
-                <div class="col-md-6">
+                <div class="col-md-6 col-12">
                     <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">Full Name</div>
                     <div style="font-weight:600;">{{ borrower.guarantor_name }}</div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 col-12">
                     <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">Phone</div>
                     <div style="font-weight:600;">{{ borrower.guarantor_phone }}</div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 col-12">
                     <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">Occupation</div>
                     <div>{{ borrower.guarantor_occupation }}</div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 col-12">
                     <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">Address</div>
                     <div>{{ borrower.guarantor_address }}</div>
                 </div>
@@ -123,8 +125,8 @@
                 <thead>
                     <tr>
                         <th>Amount</th>
-                        <th>Interest</th>
-                        <th>Duration</th>
+                        <th class="d-none d-sm-table-cell">Interest</th>
+                        <th class="d-none d-sm-table-cell">Duration</th>
                         <th>Balance</th>
                         <th>Action</th>
                     </tr>
@@ -132,13 +134,20 @@
                 <tbody>
                     {% for loan in loans %}
                     <tr>
-                        <td><strong>₦{{ loan.loan_amount }}</strong></td>
-                        <td>{{ loan.interest_rate }}%</td>
-                        <td>{{ loan.duration_months }} mo.</td>
+                        <td>
+                            <strong>₦{{ loan.loan_amount }}</strong>
+                            <!-- Show interest + duration inline on xs -->
+                            <div class="d-sm-none" style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+                                {{ loan.interest_rate }}% · {{ loan.duration_months }} mo.
+                            </div>
+                        </td>
+                        <td class="d-none d-sm-table-cell">{{ loan.interest_rate }}%</td>
+                        <td class="d-none d-sm-table-cell">{{ loan.duration_months }} mo.</td>
                         <td style="color:var(--danger); font-weight:600;">₦{{ loan.balance }}</td>
                         <td>
                             <a href="{% url 'loan_detail' loan.id %}" class="btn btn-sm btn-primary">
-                                <i class="fa-solid fa-eye me-1"></i> View Loan
+                                <i class="fa-solid fa-eye me-1"></i>
+                                <span class="d-none d-sm-inline">View Loan</span>
                             </a>
                         </td>
                     </tr>

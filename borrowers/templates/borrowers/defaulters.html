@@ -99,6 +99,7 @@
             letter-spacing: 0.6px;
             border-bottom: 1px solid var(--border) !important;
             padding: 12px 16px !important;
+            white-space: nowrap;
         }
 
         .table tbody td {
@@ -121,6 +122,47 @@
             font-size: 12px;
             padding: 4px 10px;
             border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        /* ════════ RESPONSIVE ════════ */
+        @media (max-width: 768px) {
+            .report-container {
+                padding: 20px 14px;
+            }
+
+            .report-title-group .page-title {
+                font-size: 18px;
+            }
+
+            .table-card-header {
+                padding: 14px 16px;
+            }
+
+            /* Hide less critical columns on tablet */
+            .table thead th.col-hide-md,
+            .table tbody td.col-hide-md {
+                display: none;
+            }
+        }
+
+        @media (max-width: 575px) {
+            .alert-banner {
+                font-size: 13px;
+                padding: 12px 14px;
+            }
+
+            /* Hide extra columns on mobile — show Borrower, Amount Due, Days Overdue */
+            .table thead th.col-hide-sm,
+            .table tbody td.col-hide-sm {
+                display: none;
+            }
+
+            .table thead th,
+            .table tbody td {
+                padding: 10px 12px !important;
+                font-size: 13px;
+            }
         }
     </style>
 </head>
@@ -143,7 +185,7 @@
 
     {% if defaulters %}
     <div class="alert-banner">
-        <i class="fa-solid fa-circle-exclamation fa-lg"></i>
+        <i class="fa-solid fa-circle-exclamation fa-lg flex-shrink-0"></i>
         <span>
             <strong>{{ defaulters|length }} defaulter(s)</strong> found with overdue payments. Immediate follow-up recommended.
         </span>
@@ -159,10 +201,10 @@
                 <thead>
                     <tr>
                         <th>Borrower</th>
-                        <th>Phone</th>
-                        <th>Installment</th>
+                        <th class="col-hide-sm">Phone</th>
+                        <th class="col-hide-md">Installment</th>
                         <th>Amount Due</th>
-                        <th>Due Date</th>
+                        <th class="col-hide-sm">Due Date</th>
                         <th>Days Overdue</th>
                     </tr>
                 </thead>
@@ -171,11 +213,15 @@
                     <tr>
                         <td>
                             <strong>{{ item.borrower.first_name }} {{ item.borrower.last_name }}</strong>
+                            <!-- Phone shown inline on xs -->
+                            <div class="d-sm-none" style="font-size:12px; color:#6c757d; margin-top:2px;">
+                                {{ item.borrower.phone }}
+                            </div>
                         </td>
-                        <td>{{ item.borrower.phone }}</td>
-                        <td>{{ item.installment }}</td>
+                        <td class="col-hide-sm">{{ item.borrower.phone }}</td>
+                        <td class="col-hide-md">{{ item.installment }}</td>
                         <td><strong>₦{{ item.amount_due }}</strong></td>
-                        <td>{{ item.due_date }}</td>
+                        <td class="col-hide-sm">{{ item.due_date }}</td>
                         <td>
                             <span class="days-badge">
                                 <i class="fa-solid fa-clock"></i>
@@ -186,7 +232,8 @@
                     {% empty %}
                     <tr>
                         <td colspan="6" class="text-center text-muted py-5">
-                            <i class="fa-solid fa-circle-check fa-2x mb-3 d-block" style="color:var(--primary); opacity:0.4;"></i>
+                            <i class="fa-solid fa-circle-check fa-2x mb-3 d-block"
+                               style="color:var(--primary); opacity:0.4;"></i>
                             No defaulters found. All payments are up to date!
                         </td>
                     </tr>

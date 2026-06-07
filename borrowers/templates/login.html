@@ -26,6 +26,7 @@
             align-items: center;
             justify-content: center;
             background: linear-gradient(135deg, #062d1a 0%, #0a4f2e 50%, #0e6b3e 100%);
+            padding: 16px;
         }
 
         .login-wrapper {
@@ -36,7 +37,6 @@
             border-radius: var(--radius);
             overflow: hidden;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            margin: 24px;
         }
 
         /* Left brand panel */
@@ -76,6 +76,7 @@
             border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             font-size: 24px;
+            flex-shrink: 0;
         }
 
         .brand-name {
@@ -111,6 +112,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+            flex-shrink: 0;
         }
 
         .login-form-panel h2 {
@@ -183,9 +185,61 @@
         .btn-login:hover { opacity: 0.92; transform: translateY(-1px); }
         .btn-login:active { transform: translateY(0); }
 
-        @media (max-width: 640px) {
-            .login-brand { display: none; }
-            .login-form-panel { width: 100%; }
+        /* ════════ RESPONSIVE ════════ */
+
+        /* Tablet: shrink brand panel text */
+        @media (max-width: 768px) {
+            .login-brand {
+                padding: 36px 28px;
+            }
+
+            .brand-tagline {
+                font-size: 22px;
+            }
+
+            .login-form-panel {
+                width: 320px;
+                padding: 36px 28px;
+            }
+        }
+
+        /* Phone: hide brand panel, form takes full width */
+        @media (max-width: 600px) {
+            .login-wrapper {
+                flex-direction: column;
+                min-height: unset;
+                border-radius: 16px;
+            }
+
+            /* Compact brand strip at top instead of full panel */
+            .login-brand {
+                padding: 24px 24px 20px;
+                flex: 0 0 auto;
+            }
+
+            .login-brand::before { display: none; }
+
+            .brand-logo { margin-bottom: 0; }
+
+            .brand-tagline,
+            .brand-desc { display: none; }
+
+            .login-form-panel {
+                width: 100%;
+                padding: 28px 24px 32px;
+            }
+
+            .login-form-panel p {
+                margin-bottom: 24px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            body { padding: 10px; }
+
+            .login-form-panel {
+                padding: 24px 18px 28px;
+            }
         }
     </style>
 </head>
