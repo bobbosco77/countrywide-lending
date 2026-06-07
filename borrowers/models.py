@@ -218,15 +218,3 @@ class AuditLog(models.Model):
     def __str__(self):
         return f"{self.user} - {self.action} - {self.model_name}"
     
-
-borrower_photo = models.ImageField(
-    upload_to='borrowers/',
-    blank=True,
-    null=True
-)
-
-guarantor_photo = models.ImageField(
-    upload_to='guarantors/',
-    blank=True,
-    null=True
-)
