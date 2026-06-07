@@ -1,0 +1,139 @@
+{% extends 'borrowers/base.html' %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+    <div class="topbar">
+        <div>
+            <div class="page-title">Loan Details</div>
+            <div style="font-size:13px; color:var(--text-muted); margin-top:2px;">
+                {{ loan.borrower.first_name }} {{ loan.borrower.last_name }}
+            </div>
+        </div>
+        <a href="{% url 'loan_pdf' loan.id %}" class="btn btn-primary">
+            <i class="fa-solid fa-file-pdf me-1"></i> Download Statement
+        </a>
+    </div>
+
+    <!-- Loan Summary Card -->
+    <div class="card mb-4">
+        <div class="card-body p-4">
+            <div class="row align-items-center mb-4">
+                <div class="col">
+                    <h4 style="font-weight:700; margin:0;">
+                        {{ loan.borrower.first_name }} {{ loan.borrower.last_name }}
+                    </h4>
+                    <div style="font-size:13px; color:var(--text-muted); margin-top:4px;">Loan Account</div>
+                </div>
+                <div class="col-auto">
+                    {% if loan.status == 'active' %}
+                        <span class="badge bg-success" style="font-size:13px; padding:8px 16px;">Active</span>
+                    {% elif loan.status == 'closed' %}
+                        <span class="badge bg-secondary" style="font-size:13px; padding:8px 16px;">Closed</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark" style="font-size:13px; padding:8px 16px;">{{ loan.status }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-4 col-6">
+                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">Loan Amount</div>
+                    <div style="font-size:20px; font-weight:700;">₦{{ loan.loan_amount }}</div>
+                </div>
+                <div class="col-md-4 col-6">
+                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">Interest Rate</div>
+                    <div style="font-size:20px; font-weight:700;">{{ loan.interest_rate }}%</div>
+                </div>
+                <div class="col-md-4 col-6">
+                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">Duration</div>
+                    <div style="font-size:20px; font-weight:700;">{{ loan.duration_months }} Months</div>
+                </div>
+                <div class="col-md-4 col-6">
+                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">Total Repayment</div>
+                    <div style="font-size:20px; font-weight:700; color:var(--primary);">₦{{ loan.total_repayment_value }}</div>
+                </div>
+                <div class="col-md-4 col-6">
+                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">Outstanding Balance</div>
+                    <div style="font-size:20px; font-weight:700; color:var(--danger);">₦{{ loan.balance_value }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Repayment Schedule -->
+    <div class="section-heading">
+        <i class="fa-solid fa-calendar-days" style="color:var(--primary);"></i>
+        Repayment Schedule
+    </div>
+
+    <div class="table-card mb-4">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Installment</th>
+                        <th>Due Date</th>
+                        <th>Amount Due</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for schedule in schedules %}
+                    <tr>
+                        <td><strong>#{{ schedule.installment_number }}</strong></td>
+                        <td>{{ schedule.due_date }}</td>
+                        <td>₦{{ schedule.amount_due }}</td>
+                        <td>
+                            {% if schedule.status == 'paid' %}
+                                <span class="badge bg-success">Paid</span>
+                            {% else %}
+                                <span class="badge bg-danger">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">No repayment schedule found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Payment History -->
+    <div class="section-heading">
+        <i class="fa-solid fa-receipt" style="color:var(--accent);"></i>
+        Payment History
+    </div>
+
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Amount Paid</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                    <tr>
+                        <td>{{ payment.payment_date }}</td>
+                        <td><strong style="color:var(--primary);">₦{{ payment.amount_paid }}</strong></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-center text-muted py-4">No payments recorded.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

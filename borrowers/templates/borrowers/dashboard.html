@@ -1,0 +1,177 @@
+{% extends 'borrowers/base.html' %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+    <!-- Top Bar -->
+    <div class="topbar">
+        <div>
+            <div class="page-title">Dashboard</div>
+            <div style="font-size:13px; color:var(--text-muted); margin-top:2px;">
+                Welcome back — CountryWide Microfinance
+            </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'defaulters_report' %}" class="btn btn-danger">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i> Defaulters
+            </a>
+            <a href="{% url 'borrower_list' %}" class="btn btn-primary">
+                <i class="fa-solid fa-users me-1"></i> Borrowers
+            </a>
+            <a href="{% url 'loan_form' %}" class="btn btn-success">
+                <i class="fa-solid fa-plus me-1"></i> Create Loan
+            </a>
+            <a href="{% url 'make_payment' %}" class="btn btn-warning">
+                <i class="fa-solid fa-money-bill-wave me-1"></i> Payments
+            </a>
+        </div>
+    </div>
+
+    <!-- Stat Cards Row 1 -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fa-solid fa-users"></i></div>
+                <div>
+                    <div class="stat-label">Total Borrowers</div>
+                    <div class="stat-value">{{ total_borrowers }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                <div>
+                    <div class="stat-label">Active Loans</div>
+                    <div class="stat-value">{{ active_loans }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon gold"><i class="fa-solid fa-circle-check"></i></div>
+                <div>
+                    <div class="stat-label">Closed Loans</div>
+                    <div class="stat-value">{{ closed_loans }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon red"><i class="fa-solid fa-clock"></i></div>
+                <div>
+                    <div class="stat-label">Pending Loans</div>
+                    <div class="stat-value">{{ pending_loans }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stat Cards Row 2 -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fa-solid fa-briefcase"></i></div>
+                <div>
+                    <div class="stat-label">Total Loan Portfolio</div>
+                    <div class="stat-value" style="font-size:20px;">₦{{ total_loan_portfolio }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon gold"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                <div>
+                    <div class="stat-label">Total Repayments</div>
+                    <div class="stat-value" style="font-size:20px;">₦{{ total_repayments }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon red"><i class="fa-solid fa-scale-balanced"></i></div>
+                <div>
+                    <div class="stat-label">Loan Balance</div>
+                    <div class="stat-value" style="font-size:20px;">₦{{ loan_balance }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables Row -->
+    <div class="row g-4">
+
+        <!-- Recent Loans -->
+        <div class="col-lg-6">
+            <div class="table-card">
+                <div class="table-card-header">
+                    <h5><i class="fa-solid fa-file-invoice-dollar me-2 text-success"></i>Recent Loans</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Borrower</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in recent_loans %}
+                            <tr>
+                                <td>{{ loan.borrower }}</td>
+                                <td><strong>₦{{ loan.loan_amount }}</strong></td>
+                                <td>
+                                    {% if loan.status == 'active' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% elif loan.status == 'closed' %}
+                                        <span class="badge bg-secondary">Closed</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">{{ loan.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted py-4">No recent loans.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Payments -->
+        <div class="col-lg-6">
+            <div class="table-card">
+                <div class="table-card-header">
+                    <h5><i class="fa-solid fa-money-bill-wave me-2 text-warning"></i>Recent Payments</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in recent_payments %}
+                            <tr>
+                                <td>{{ payment.payment_date }}</td>
+                                <td><strong>₦{{ payment.amount_paid }}</strong></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="2" class="text-center text-muted py-4">No recent payments.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

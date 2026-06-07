@@ -1,0 +1,97 @@
+{% load roles %}
+
+<div class="sidebar">
+
+    <div class="sidebar-logo">
+        <div class="logo-icon">🏦</div>
+        <div>
+            <div class="logo-text">CountryWide</div>
+            <div class="logo-sub">Microfinance</div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <ul class="menu">
+
+            <!-- Dashboard -->
+            <li>
+                <a href="{% url 'dashboard' %}">
+                    <i class="fa-solid fa-gauge-high"></i>
+                    Dashboard
+                </a>
+            </li>
+
+            <!-- Borrowers -->
+            <li>
+                <a href="{% url 'borrower_list' %}">
+                    <i class="fa-solid fa-users"></i>
+                    Borrowers
+                </a>
+            </li>
+
+            <!-- Loan Officer + Manager -->
+            {% if request.user|is_loan_officer or request.user|is_manager %}
+                <li class="section">Loans</li>
+
+                <li>
+                    <a href="{% url 'register' %}">
+                        <i class="fa-solid fa-user-plus"></i>
+                        Register Borrower
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{% url 'loan_form' %}">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                        Create Loan
+                    </a>
+                </li>
+            {% endif %}
+
+            <!-- Cashier + Manager -->
+            {% if request.user|is_cashier or request.user|is_manager %}
+                <li class="section">Payments</li>
+
+                <li>
+                    <a href="{% url 'make_payment' %}">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                        Record Payment
+                    </a>
+                </li>
+            {% endif %}
+
+            <!-- Auditor + Manager -->
+            {% if request.user|is_auditor or request.user|is_manager %}
+                <li class="section">Reports</li>
+
+                <li>
+                    <a href="{% url 'defaulters_report' %}">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Defaulters Report
+                    </a>
+                </li>
+            {% endif %}
+
+            <!-- Manager + Superuser -->
+            {% if request.user|is_manager %}
+                <li class="section">Admin</li>
+
+                <li>
+                    <a href="/admin/">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        Admin Panel
+                    </a>
+                </li>
+            {% endif %}
+
+        </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+        <a href="{% url 'logout' %}">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Logout
+        </a>
+    </div>
+
+</div>

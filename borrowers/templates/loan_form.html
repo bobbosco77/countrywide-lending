@@ -1,0 +1,99 @@
+{% extends 'borrowers/base.html' %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+    <div class="topbar">
+        <div>
+            <div class="page-title">Create Loan</div>
+            <div style="font-size:13px; color:var(--text-muted); margin-top:2px;">
+                Issue a new loan to a registered borrower
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card">
+                <div class="card-body p-4">
+
+                    <div class="d-flex align-items-center gap-3 mb-4 pb-3" style="border-bottom:1px solid var(--border);">
+                        <div class="stat-icon green" style="width:44px; height:44px; font-size:18px;">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:700; font-size:16px;">New Loan Application</div>
+                            <div style="font-size:12px; color:var(--text-muted);">All fields are required</div>
+                        </div>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Borrower ID</label>
+                            <input
+                                type="number"
+                                name="borrower_id"
+                                class="form-control"
+                                placeholder="Enter borrower ID number"
+                                required
+                            >
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Loan Amount (₦)</label>
+                            <div style="position:relative;">
+                                <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); font-weight:600; color:var(--text-muted);">₦</span>
+                                <input
+                                    type="number"
+                                    name="loan_amount"
+                                    class="form-control"
+                                    placeholder="0.00"
+                                    required
+                                    style="padding-left:30px;"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Interest Rate (%)</label>
+                            <div style="position:relative;">
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    name="interest_rate"
+                                    class="form-control"
+                                    placeholder="e.g. 5.00"
+                                    required
+                                    style="padding-right:36px;"
+                                >
+                                <span style="position:absolute; right:13px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-weight:600;">%</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Duration (Months)</label>
+                            <input
+                                type="number"
+                                name="duration_months"
+                                class="form-control"
+                                placeholder="e.g. 12"
+                                required
+                            >
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100" style="padding:11px !important; font-size:14px !important;">
+                            <i class="fa-solid fa-plus me-2"></i>Create Loan
+                        </button>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

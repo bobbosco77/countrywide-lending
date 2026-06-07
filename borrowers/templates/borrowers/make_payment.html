@@ -1,0 +1,82 @@
+{% extends 'borrowers/base.html' %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+    <div class="topbar">
+        <div>
+            <div class="page-title">Record Payment</div>
+            <div style="font-size:13px; color:var(--text-muted); margin-top:2px;">
+                Post a loan repayment transaction
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card">
+                <div class="card-body p-4">
+
+                    <div class="d-flex align-items-center gap-3 mb-4 pb-3" style="border-bottom:1px solid var(--border);">
+                        <div class="stat-icon green" style="width:44px;height:44px;font-size:18px;">
+                            <i class="fa-solid fa-money-bill-wave"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:700; font-size:16px;">Payment Entry</div>
+                            <div style="font-size:12px; color:var(--text-muted);">All fields are required</div>
+                        </div>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Select Loan</label>
+                            <select name="loan_id" class="form-select">
+                                {% for loan in loans %}
+                                <option value="{{ loan.id }}">
+                                    {{ loan.borrower.first_name }} {{ loan.borrower.last_name }} — ₦{{ loan.loan_amount }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Amount Paid (₦)</label>
+                            <div style="position:relative;">
+                                <span style="position:absolute; left:13px; top:50%; transform:translateY(-50%); font-weight:600; color:var(--text-muted);">₦</span>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0.01"
+                                    name="amount_paid"
+                                    class="form-control"
+                                    placeholder="0.00"
+                                    style="padding-left: 30px;"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Payment Method</label>
+                            <select name="method" class="form-select">
+                                <option value="cash">💵 Cash</option>
+                                <option value="transfer">🏦 Bank Transfer</option>
+                                <option value="mobile">📱 Mobile Money</option>
+                            </select>
+                        </div>
+
+                        <button class="btn btn-success w-100" style="padding:11px !important; font-size:14px !important;">
+                            <i class="fa-solid fa-check me-2"></i>Record Payment
+                        </button>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
