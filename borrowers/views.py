@@ -97,7 +97,7 @@ def user_login(request):
                 return redirect('register_borrower')
 
             else:
-                return redirect('login')
+                return redirect('login.html')
 
 
 def user_logout(request):
