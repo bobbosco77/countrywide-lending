@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from reportlab.pdfgen import canvas
 from datetime import date, timedelta
 from decimal import Decimal
+from functools import wraps
 
 from .forms import BorrowerForm
 from .models import Borrower, Loan, RepaymentSchedule, Payment
@@ -17,40 +18,55 @@ from .permissions import (
     is_loan_officer,
     is_manager,
     is_auditor,
-    manager_required,
 )
 
 # ==================================================
-# RBAC DECORATOR (ENTERPRISE STYLE)
+# ROLE DECORATOR (FIXED - SAFE & PRODUCTION READY)
 # ==================================================
 
-from functools import wraps
-
-def role_required(check):
+def role_required(check_func):
     def decorator(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
+
             if not request.user.is_authenticated:
                 return redirect('login')
 
-            if not check(request.user):
+            if not check_func(request.user):
                 return HttpResponse("Access Denied", status=403)
 
             return view_func(request, *args, **kwargs)
+
         return wrapper
     return decorator
 
 
 # ==================================================
-# CORE ACCESS RULE
+# ROLE HELPERS
 # ==================================================
 
 def is_manager_or_superuser(user):
     return user.is_superuser or is_manager(user)
 
 
-def manager_or_staff(user):
-    return user.is_superuser or user.groups.exists()
+def can_register_borrower(user):
+    return is_manager_or_superuser(user) or is_loan_officer(user) or is_cashier(user)
+
+
+def can_view_borrowers(user):
+    return is_manager_or_superuser(user) or is_cashier(user)
+
+
+def can_make_payment(user):
+    return is_manager_or_superuser(user) or is_cashier(user)
+
+
+def can_create_loan(user):
+    return is_manager_or_superuser(user) or is_loan_officer(user)
+
+
+def can_view_reports(user):
+    return is_manager_or_superuser(user) or is_auditor(user)
 
 
 # ==================================================
@@ -73,6 +89,7 @@ def user_login(request):
 
             if user.is_superuser or is_manager(user):
                 return redirect('dashboard')
+
             return redirect('borrower_list')
 
         messages.error(request, "Invalid credentials")
@@ -90,7 +107,7 @@ def user_logout(request):
 # ==================================================
 
 @login_required
-@role_required(lambda u: is_manager_or_superuser(u) or is_loan_officer(u))
+@role_required(can_register_borrower)
 def register_borrower(request):
 
     form = BorrowerForm(request.POST or None, request.FILES or None)
@@ -111,7 +128,7 @@ def register_borrower(request):
 
 
 @login_required
-@role_required(lambda u: is_manager_or_superuser(u) or is_loan_officer(u))
+@role_required(can_view_borrowers)
 def borrower_list(request):
 
     borrowers = Borrower.objects.all()
@@ -156,7 +173,7 @@ def borrower_profile(request, borrower_id):
 # ==================================================
 
 @login_required
-@role_required(lambda u: is_manager_or_superuser(u) or is_loan_officer(u))
+@role_required(can_create_loan)
 def create_loan(request):
 
     if request.method == 'POST':
@@ -199,7 +216,7 @@ def create_loan(request):
 # ==================================================
 
 @login_required
-@role_required(lambda u: is_manager_or_superuser(u) or is_cashier(u))
+@role_required(can_make_payment)
 def make_payment(request):
 
     loans = Loan.objects.filter(status__in=['active', 'approved'])
@@ -239,7 +256,7 @@ def make_payment(request):
 
 
 # ==================================================
-# DASHBOARD (MANAGER ONLY)
+# DASHBOARD
 # ==================================================
 
 @login_required
@@ -260,11 +277,11 @@ def dashboard(request):
 
 
 # ==================================================
-# REPORTS (AUDITOR + MANAGER)
+# REPORTS
 # ==================================================
 
 @login_required
-@role_required(lambda u: is_manager_or_superuser(u) or is_auditor(u))
+@role_required(can_view_reports)
 def defaulters_report(request):
 
     overdue = RepaymentSchedule.objects.filter(
@@ -303,7 +320,7 @@ def loan_detail(request, loan_id):
 
 
 # ==================================================
-# PDF
+# PDF EXPORT
 # ==================================================
 
 @login_required
@@ -317,7 +334,6 @@ def loan_statement_pdf(request, loan_id):
     p = canvas.Canvas(response)
 
     p.drawString(200, 800, "LOAN STATEMENT")
-
     p.drawString(50, 760, f"Borrower: {loan.borrower}")
     p.drawString(50, 740, f"Amount: {loan.loan_amount}")
 
@@ -352,24 +368,9 @@ def borrowers_pdf(request):
     p.setFont("Helvetica", 10)
 
     for borrower in borrowers:
-
-        p.drawString(
-            40,
-            y,
-            f"{borrower.first_name} {borrower.last_name}"
-        )
-
-        p.drawString(
-            220,
-            y,
-            borrower.phone or "-"
-        )
-
-        p.drawString(
-            360,
-            y,
-            borrower.occupation or "-"
-        )
+        p.drawString(40, y, f"{borrower.first_name} {borrower.last_name}")
+        p.drawString(220, y, borrower.phone or "-")
+        p.drawString(360, y, borrower.occupation or "-")
 
         y -= 20
 
@@ -378,5 +379,4 @@ def borrowers_pdf(request):
             y = 800
 
     p.save()
-
     return response
