@@ -1,3 +1,4 @@
+{% load static %}
 {% load roles %}
 
 <div class="sidebar" id="appSidebar">
@@ -7,8 +8,12 @@
         <i class="fa-solid fa-xmark"></i>
     </button>
 
+    <!-- ✅ PROFESSIONAL LOGO -->
     <div class="sidebar-logo">
-        <div class="logo-icon">🏦</div>
+        <div class="logo-icon">
+            <img src="{% static 'countrywide/images/CW_Logo.jpg' %}" alt="CountryWide Logo">
+        </div>
+
         <div>
             <div class="logo-text">CountryWide</div>
             <div class="logo-sub">Lending and Services</div>
@@ -18,7 +23,6 @@
     <nav class="sidebar-nav">
         <ul class="menu">
 
-            <!-- Manager Only Dashboard -->
             {% if request.user|is_manager %}
             <li>
                 <a href="{% url 'dashboard' %}">
@@ -28,7 +32,6 @@
             </li>
             {% endif %}
 
-            <!-- Cashier + Manager -->
             {% if request.user|is_cashier or request.user|is_manager %}
             <li class="section">Borrowers</li>
 
@@ -47,7 +50,6 @@
             </li>
             {% endif %}
 
-            <!-- Loan Officer + Manager -->
             {% if request.user|is_loan_officer or request.user|is_manager %}
             <li class="section">Loans</li>
 
@@ -66,7 +68,6 @@
             </li>
             {% endif %}
 
-            <!-- Cashier + Manager -->
             {% if request.user|is_cashier or request.user|is_manager %}
             <li class="section">Payments</li>
 
@@ -78,7 +79,6 @@
             </li>
             {% endif %}
 
-            <!-- Auditor + Manager -->
             {% if request.user|is_auditor or request.user|is_manager %}
             <li class="section">Reports</li>
 
@@ -90,7 +90,6 @@
             </li>
             {% endif %}
 
-            <!-- Manager Only -->
             {% if request.user|is_manager %}
             <li class="section">Admin</li>
 
