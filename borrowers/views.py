@@ -405,6 +405,9 @@ def borrowers_pdf(request):
 
     return response
 
+
+@login_required
+@role_required(lambda u: is_manager_or_superuser(u) or is_auditor(u))
 def export_defaulters_excel(request):
 
     wb = openpyxl.Workbook()
@@ -431,4 +434,35 @@ def export_defaulters_excel(request):
     response['Content-Disposition'] = 'attachment; filename=defaulters.xlsx'
 
     wb.save(response)
+    return response
+
+@login_required
+@role_required(lambda u: is_manager_or_superuser(u) or is_auditor(u))
+def export_defaulters_pdf(request):
+
+    overdue = RepaymentSchedule.objects.filter(
+        status='pending',
+        due_date__lt=date.today()
+    )
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="defaulters.pdf"'
+
+    p = canvas.Canvas(response)
+
+    p.drawString(200, 800, "DEFAULTERS REPORT")
+
+    y = 760
+    for item in overdue:
+        p.drawString(
+            50, y,
+            f"{item.loan.borrower.first_name} {item.loan.borrower.last_name} - ₦{item.amount_due}"
+        )
+        y -= 20
+
+        if y < 50:
+            p.showPage()
+            y = 800
+
+    p.save()
     return response
