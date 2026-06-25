@@ -10,6 +10,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 from functools import wraps
 import json
+import openpyxl
 
 from .forms import BorrowerForm
 from .models import Borrower, Loan, RepaymentSchedule, Payment
@@ -394,4 +395,32 @@ def borrowers_pdf(request):
 
     p.save()
 
+    return response
+
+def export_defaulters_excel(request):
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Defaulters"
+
+    ws.append(["Borrower", "Phone", "Amount Due", "Due Date"])
+
+    defaulters = RepaymentSchedule.objects.filter(
+        due_date__lt=date.today()
+    ).exclude(status='paid')
+
+    for item in defaulters:
+        ws.append([
+            f"{item.loan.borrower.first_name} {item.loan.borrower.last_name}",
+            item.loan.borrower.phone,
+            item.amount,
+            item.due_date,
+        ])
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=defaulters.xlsx'
+
+    wb.save(response)
     return response
