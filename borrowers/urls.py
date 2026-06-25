@@ -59,8 +59,9 @@ urlpatterns = [
         views.user_logout,
         name='logout'
     ),
-    path('defaulters/export/excel/',
-        views.export_defaulters_excel, 
+     path(
+        'defaulters/export/excel/',
+        views.export_defaulters_excel,
         name='export_defaulters_excel'
     ),
 ]
