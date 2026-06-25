@@ -4,56 +4,88 @@
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h3 class="fw-bold mb-1">Register Borrower</h3>
-        <p class="text-muted mb-0">
-            Add a new borrower to the system
-        </p>
-    </div>
-</div>
+<div class="container-fluid">
 
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-
-```
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-4">
-
-            <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
-                <div class="me-3">
-                    <div class="rounded bg-success bg-opacity-10 d-flex align-items-center justify-content-center"
-                         style="width:50px;height:50px;">
-                        <i class="fa-solid fa-user-plus text-success"></i>
-                    </div>
-                </div>
-
-                <div>
-                    <h5 class="mb-1">Borrower Registration Form</h5>
-                    <small class="text-muted">
-                        Fill in all required borrower details
-                    </small>
-                </div>
-            </div>
-
-            <form method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-
-                {{ form.as_p }}
-
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-success">
-                        <i class="fa-solid fa-user-plus me-2"></i>
-                        Register Borrower
-                    </button>
-                </div>
-            </form>
-
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">Register Borrower</h3>
+            <p class="text-muted mb-0">
+                Add a new borrower to the system
+            </p>
         </div>
     </div>
 
-</div>
-```
+    <div class="row justify-content-center">
+
+        <div class="col-xl-8 col-lg-9">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex align-items-center">
+
+                        <div
+                            class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                            style="
+                                width:50px;
+                                height:50px;
+                                background:#e8f5ec;
+                                color:#0a4f2e;
+                            "
+                        >
+                            <i class="fa-solid fa-user-plus"></i>
+                        </div>
+
+                        <div>
+                            <h5 class="mb-0 fw-bold">
+                                Borrower Registration
+                            </h5>
+
+                            <small class="text-muted">
+                                Fill in borrower details below
+                            </small>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-success">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST" enctype="multipart/form-data">
+
+                        {% csrf_token %}
+
+                        {{ form.as_p }}
+
+                        <div class="mt-4">
+
+                            <button
+                                type="submit"
+                                class="btn btn-success px-4"
+                            >
+                                <i class="fa-solid fa-user-plus me-2"></i>
+                                Register Borrower
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </div>
 
