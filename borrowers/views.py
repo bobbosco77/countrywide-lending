@@ -302,32 +302,40 @@ def user_logout(request):
 @role_required(lambda u: is_manager_or_superuser(u) or is_auditor(u))
 def defaulters_report(request):
 
-    overdue = RepaymentSchedule.objects.select_related('loan__borrower').filter(
+    overdue = RepaymentSchedule.objects.select_related(
+        'loan',
+        'loan__borrower'
+    ).filter(
         status='pending',
         due_date__lt=date.today()
     )
 
-    # OPTIONAL: simple chart data (you can improve later)
-    chart_labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    chart_data = [
-        overdue.filter(due_date__week_day=2).count(),
-        overdue.filter(due_date__week_day=3).count(),
-        overdue.filter(due_date__week_day=4).count(),
-        overdue.filter(due_date__week_day=5).count(),
-        overdue.filter(due_date__week_day=6).count(),
-        overdue.filter(due_date__week_day=7).count(),
-        overdue.filter(due_date__week_day=1).count(),
-    ]
+    search = request.GET.get('search')
+
+    if search:
+        overdue = overdue.filter(
+            Q(loan__borrower__first_name__icontains=search) |
+            Q(loan__borrower__last_name__icontains=search) |
+            Q(loan__borrower__phone__icontains=search)
+        )
+
+    for item in overdue:
+        item.days_overdue = (date.today() - item.due_date).days
+
+    chart_labels = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+    chart_data = [0,0,0,0,0,0,0]
 
     context = {
         "defaulters": overdue,
-
-        # for Chart.js
         "chart_labels": json.dumps(chart_labels),
         "chart_data": json.dumps(chart_data),
     }
 
-    return render(request, 'borrowers/defaulters.html', context)
+    return render(
+        request,
+        "borrowers/defaulters.html",
+        context
+    )
 
 @login_required
 def loan_statement_pdf(request, loan_id):
@@ -413,7 +421,7 @@ def export_defaulters_excel(request):
         ws.append([
             f"{item.loan.borrower.first_name} {item.loan.borrower.last_name}",
             item.loan.borrower.phone,
-            item.amount,
+            item.amount_due,
             item.due_date,
         ])
 
