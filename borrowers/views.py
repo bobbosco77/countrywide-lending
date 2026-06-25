@@ -9,6 +9,7 @@ from reportlab.pdfgen import canvas
 from datetime import date, timedelta
 from decimal import Decimal
 from functools import wraps
+import json
 
 from .forms import BorrowerForm
 from .models import Borrower, Loan, RepaymentSchedule, Payment
@@ -300,18 +301,32 @@ def user_logout(request):
 @role_required(lambda u: is_manager_or_superuser(u) or is_auditor(u))
 def defaulters_report(request):
 
-    overdue = RepaymentSchedule.objects.filter(
+    overdue = RepaymentSchedule.objects.select_related('loan__borrower').filter(
         status='pending',
         due_date__lt=date.today()
     )
 
-    return render(
-        request,
-        'borrowers/defaulters.html',
-        {
-            'defaulters': overdue
-        }
-    )
+    # OPTIONAL: simple chart data (you can improve later)
+    chart_labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    chart_data = [
+        overdue.filter(due_date__week_day=2).count(),
+        overdue.filter(due_date__week_day=3).count(),
+        overdue.filter(due_date__week_day=4).count(),
+        overdue.filter(due_date__week_day=5).count(),
+        overdue.filter(due_date__week_day=6).count(),
+        overdue.filter(due_date__week_day=7).count(),
+        overdue.filter(due_date__week_day=1).count(),
+    ]
+
+    context = {
+        "defaulters": overdue,
+
+        # for Chart.js
+        "chart_labels": json.dumps(chart_labels),
+        "chart_data": json.dumps(chart_data),
+    }
+
+    return render(request, 'borrowers/defaulters.html', context)
 
 @login_required
 def loan_statement_pdf(request, loan_id):

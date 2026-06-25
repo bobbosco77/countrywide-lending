@@ -1,250 +1,216 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Defaulters Report — CountryWide Lending and Services</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+{% extends 'borrowers/base.html' %}
+{% load static %}
 
-    <style>
-        :root {
-            --primary: #0a4f2e;
-            --accent:  #c9a02a;
-            --danger:  #c0392b;
-            --bg:      #f4f6f9;
-            --border:  #e2e8f0;
-            --shadow:  0 2px 12px rgba(0,0,0,0.08);
-            --radius:  12px;
-        }
+{% block content %}
 
-        * { box-sizing: border-box; }
+<style>
+    .dash-header {
+        display:flex;
+        justify-content:space-between;
+        flex-wrap:wrap;
+        gap:10px;
+        margin-bottom:15px;
+    }
 
-        body {
-            margin: 0;
-            font-family: 'Inter', Arial, sans-serif;
-            background: var(--bg);
-            color: #1a1a2e;
-        }
+    .card-box {
+        background:#fff;
+        border-radius:12px;
+        box-shadow:0 2px 12px rgba(0,0,0,0.08);
+        padding:15px;
+    }
 
-        .report-container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 36px 24px;
-        }
+    .stat {
+        font-size:22px;
+        font-weight:700;
+    }
 
-        .report-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 28px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
+    .badge-overdue {
+        background: rgba(192,57,43,0.1);
+        color:#c0392b;
+        padding:4px 10px;
+        border-radius:6px;
+        font-size:12px;
+        font-weight:600;
+    }
 
-        .report-title-group .page-title {
-            font-size: 22px;
-            font-weight: 700;
-        }
+    .toolbar {
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+        margin-bottom:15px;
+    }
 
-        .report-title-group .page-sub {
-            font-size: 13px;
-            color: #6c757d;
-            margin-top: 2px;
-        }
+    .toolbar input, .toolbar select {
+        padding:8px 10px;
+        border:1px solid #ddd;
+        border-radius:8px;
+        font-size:13px;
+    }
 
-        .alert-banner {
-            background: rgba(192,57,43,0.08);
-            border: 1px solid rgba(192,57,43,0.2);
-            border-radius: var(--radius);
-            padding: 14px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 24px;
-            font-size: 14px;
-            color: var(--danger);
-        }
+    .btn-smx {
+        font-size:12px;
+        padding:6px 10px;
+        border-radius:6px;
+    }
 
-        .table-card {
-            background: white;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-        }
+    .table td, .table th {
+        vertical-align:middle;
+        font-size:14px;
+    }
 
-        .table-card-header {
-            padding: 18px 24px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+    .wa-btn {
+        background:#25D366;
+        color:white;
+        border:none;
+        padding:6px 10px;
+        border-radius:6px;
+        font-size:12px;
+    }
 
-        .table-card-header h5 {
-            margin: 0;
-            font-size: 15px;
-            font-weight: 600;
-        }
+    .wa-btn:hover { opacity:0.85; }
 
-        .table { margin: 0 !important; }
+</style>
 
-        .table thead th {
-            background: #f8fafc;
-            color: #6c757d;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            border-bottom: 1px solid var(--border) !important;
-            padding: 12px 16px !important;
-            white-space: nowrap;
-        }
+<div class="container-fluid">
 
-        .table tbody td {
-            padding: 13px 16px !important;
-            font-size: 14px;
-            border-bottom: 1px solid var(--border) !important;
-            vertical-align: middle;
-        }
-
-        .table tbody tr:last-child td { border-bottom: none !important; }
-        .table tbody tr:hover { background: #fef2f2; }
-
-        .days-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(192,57,43,0.1);
-            color: var(--danger);
-            font-weight: 700;
-            font-size: 12px;
-            padding: 4px 10px;
-            border-radius: 6px;
-            white-space: nowrap;
-        }
-
-        /* ════════ RESPONSIVE ════════ */
-        @media (max-width: 768px) {
-            .report-container {
-                padding: 20px 14px;
-            }
-
-            .report-title-group .page-title {
-                font-size: 18px;
-            }
-
-            .table-card-header {
-                padding: 14px 16px;
-            }
-
-            /* Hide less critical columns on tablet */
-            .table thead th.col-hide-md,
-            .table tbody td.col-hide-md {
-                display: none;
-            }
-        }
-
-        @media (max-width: 575px) {
-            .alert-banner {
-                font-size: 13px;
-                padding: 12px 14px;
-            }
-
-            /* Hide extra columns on mobile — show Borrower, Amount Due, Days Overdue */
-            .table thead th.col-hide-sm,
-            .table tbody td.col-hide-sm {
-                display: none;
-            }
-
-            .table thead th,
-            .table tbody td {
-                padding: 10px 12px !important;
-                font-size: 13px;
-            }
-        }
-    </style>
-</head>
-<body>
-
-<div class="report-container">
-
-    <div class="report-header">
-        <div class="report-title-group">
-            <div class="page-title">
-                <i class="fa-solid fa-triangle-exclamation me-2" style="color:var(--danger);"></i>
-                Defaulters Report
-            </div>
-            <div class="page-sub">Borrowers with overdue loan installments</div>
-        </div>
-        <div>
-            <span style="font-size:12px; color:#6c757d;">CountryWide Lending and Services</span>
-        </div>
+<!-- HEADER -->
+<div class="dash-header">
+    <div>
+        <h4 class="mb-0">
+            <i class="fa-solid fa-triangle-exclamation text-danger"></i>
+            Defaulters Report
+        </h4>
+        <small class="text-muted">Live overdue loan tracking system</small>
     </div>
 
-    {% if defaulters %}
-    <div class="alert-banner">
-        <i class="fa-solid fa-circle-exclamation fa-lg flex-shrink-0"></i>
-        <span>
-            <strong>{{ defaulters|length }} defaulter(s)</strong> found with overdue payments. Immediate follow-up recommended.
-        </span>
-    </div>
-    {% endif %}
+    <div class="d-flex gap-2">
+        <a href="{% url 'export_defaulters_excel' %}" class="btn btn-success btn-smx">
+            <i class="fa fa-file-excel"></i> Excel
+        </a>
 
-    <div class="table-card">
-        <div class="table-card-header">
-            <h5>Overdue Accounts</h5>
-        </div>
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Borrower</th>
-                        <th class="col-hide-sm">Phone</th>
-                        <th class="col-hide-md">Installment</th>
-                        <th>Amount Due</th>
-                        <th class="col-hide-sm">Due Date</th>
-                        <th>Days Overdue</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in defaulters %}
-                    <tr>
-                        <td>
-                            <strong>{{ item.borrower.first_name }} {{ item.borrower.last_name }}</strong>
-                            <!-- Phone shown inline on xs -->
-                            <div class="d-sm-none" style="font-size:12px; color:#6c757d; margin-top:2px;">
-                                {{ item.borrower.phone }}
-                            </div>
-                        </td>
-                        <td class="col-hide-sm">{{ item.borrower.phone }}</td>
-                        <td class="col-hide-md">{{ item.installment }}</td>
-                        <td><strong>₦{{ item.amount_due }}</strong></td>
-                        <td class="col-hide-sm">{{ item.due_date }}</td>
-                        <td>
-                            <span class="days-badge">
-                                <i class="fa-solid fa-clock"></i>
-                                {{ item.days_overdue }} days
-                            </span>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center text-muted py-5">
-                            <i class="fa-solid fa-circle-check fa-2x mb-3 d-block"
-                               style="color:var(--primary); opacity:0.4;"></i>
-                            No defaulters found. All payments are up to date!
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <a href="{% url 'export_defaulters_pdf' %}" class="btn btn-danger btn-smx">
+            <i class="fa fa-file-pdf"></i> PDF
+        </a>
+    </div>
+</div>
+
+<!-- STATS -->
+<div class="row g-2 mb-3">
+    <div class="col-md-4">
+        <div class="card-box">
+            <div class="text-muted">Total Defaulters</div>
+            <div class="stat">{{ defaulters|length }}</div>
         </div>
     </div>
+</div>
+
+<!-- FILTER BAR -->
+<form method="GET" class="toolbar">
+
+    <input type="text" name="search" placeholder="Search borrower..." value="{{ request.GET.search }}">
+
+    <select name="loan_officer">
+        <option value="">All Officers</option>
+        {% for officer in officers %}
+            <option value="{{ officer.id }}">{{ officer.username }}</option>
+        {% endfor %}
+    </select>
+
+    <button class="btn btn-primary btn-smx">
+        <i class="fa fa-search"></i> Filter
+    </button>
+</form>
+
+<!-- TABLE -->
+<div class="card-box">
+
+<div class="table-responsive">
+<table class="table table-hover">
+
+<thead>
+<tr>
+    <th>Borrower</th>
+    <th>Phone</th>
+    <th>Amount</th>
+    <th>Due Date</th>
+    <th>Days Overdue</th>
+    <th>Action</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for item in defaulters %}
+<tr>
+
+<td>
+<strong>{{ item.borrower.first_name }} {{ item.borrower.last_name }}</strong>
+</td>
+
+<td>{{ item.borrower.phone }}</td>
+
+<td><b>₦{{ item.amount_due }}</b></td>
+
+<td>{{ item.due_date }}</td>
+
+<td>
+<span class="badge-overdue">
+{{ item.days_overdue }} days
+</span>
+</td>
+
+<td>
+    <a class="wa-btn"
+       href="https://wa.me/234{{ item.borrower.phone }}"
+       target="_blank">
+        WhatsApp
+    </a>
+</td>
+
+</tr>
+{% empty %}
+<tr>
+<td colspan="6" class="text-center text-muted py-4">
+No defaulters found 🎉
+</td>
+</tr>
+{% endfor %}
+
+</tbody>
+
+</table>
+</div>
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<!-- CHART -->
+<div class="card-box mt-3">
+    <h6>Defaulters Trend</h6>
+    <canvas id="defaultersChart"></canvas>
+</div>
+
+</div>
+
+<!-- CHART JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const ctx = document.getElementById('defaultersChart');
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {{ chart_labels|safe }},
+        datasets: [{
+            label: 'Defaulters',
+            data: {{ chart_data|safe }},
+            borderColor: '#c0392b',
+            backgroundColor: 'rgba(192,57,43,0.1)',
+            fill: true,
+            tension: 0.3
+        }]
+    }
+});
+</script>
+
+{% endblock %}
