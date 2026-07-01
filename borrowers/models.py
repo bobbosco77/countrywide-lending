@@ -58,7 +58,7 @@ class Loan(models.Model):
         decimal_places=2
     )
 
-    duration_months = models.PositiveIntegerField()
+    duration_weeks = models.PositiveIntegerField()
 
     start_date = models.DateField(
         auto_now_add=True
@@ -85,24 +85,24 @@ class Loan(models.Model):
     def total_repayment(self):
         """
         Total amount borrower is expected to repay.
-        Formula currently assumes interest_rate is monthly.
+        Formula currently assumes interest_rate is weekly.
         """
         interest = (
             self.loan_amount *
             self.interest_rate *
-            self.duration_months
+            self.duration_weeks
         ) / Decimal('100')
 
         return self.loan_amount + interest
 
-    def monthly_payment(self):
+    def weekly_payment(self):
         """
-        Monthly installment amount.
+        weekly installment amount.
         """
-        if self.duration_months <= 0:
+        if self.duration_weeks <= 0:
             return Decimal('0.00')
 
-        return self.total_repayment() / Decimal(self.duration_months)
+        return self.total_repayment() / Decimal(self.duration_weeks)
 
     def total_paid(self):
         """
@@ -121,22 +121,18 @@ class Loan(models.Model):
         return self.total_repayment() - self.total_paid()
 
     def generate_repayment_schedule(self):
-        """
-        Creates repayment schedule records.
-        Prevents duplicate schedule generation.
-        """
 
         if RepaymentSchedule.objects.filter(loan=self).exists():
             return
 
-        monthly_amount = self.monthly_payment()
+        weekly_amount = self.weekly_payment()
 
-        for installment in range(1, self.duration_months + 1):
+        for installment in range(1, self.duration_weeks + 1):
             RepaymentSchedule.objects.create(
                 loan=self,
                 installment_number=installment,
-                due_date=date.today() + timedelta(days=30 * installment),
-                amount_due=monthly_amount,
+                due_date=date.today() + timedelta(days=7 * installment),
+                amount_due=weekly_amount,
                 status='pending'
             )
 

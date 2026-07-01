@@ -242,13 +242,13 @@ def create_loan(request):
 
         amount = Decimal(request.POST.get("loan_amount"))
         rate = Decimal(request.POST.get("interest_rate"))
-        months = int(request.POST.get("duration_months"))
+        weeks = int(request.POST['duration_weeks'])
 
         loan = Loan.objects.create(
             borrower=borrower,
             loan_amount=amount,
             interest_rate=rate,
-            duration_months=months,
+            duration_weeks=weeks,
             status="active"
         )
 
@@ -492,6 +492,11 @@ def loan_statement_pdf(request, loan_id):
         50,
         720,
         f"Balance: ₦{loan.balance()}"
+    )
+    p.drawString(
+        50,
+        700,
+        f"Duration: {loan.duration_weeks} Weeks"
     )
 
     p.showPage()
