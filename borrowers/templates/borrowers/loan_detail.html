@@ -52,12 +52,22 @@
                 </div>
                 <div class="col-md-4 col-6">
                     <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">Total Repayment</div>
-                    <div style="font-size:20px; font-weight:700; color:var(--primary);">₦{{ loan.total_repayment_value }}</div>
+                    <div style="font-size:20px; font-weight:700; color:var(--primary);">₦{{ total_repayment }}</div>
                 </div>
                 <div class="col-md-4 col-6">
                     <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">Outstanding Balance</div>
-                    <div style="font-size:20px; font-weight:700; color:var(--danger);">₦{{ loan.balance_value }}</div>
+                    <div style="font-size:20px; font-weight:700; color:var(--danger);">₦{{ balance }}</div>
                 </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-6">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;">
+                Total Paid
+            </div>
+
+            <div style="font-size:20px;font-weight:700;color:#198754;">
+                ₦{{ total_paid }}
             </div>
         </div>
     </div>
@@ -101,6 +111,27 @@
                 </tbody>
             </table>
         </div>
+        <div class="card mb-4">
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between mb-2">
+                    <strong>Repayment Progress</strong>
+                    <span>{{ progress }}%</span>
+                </div>
+
+                <div class="progress" style="height:12px;">
+                    <div class="progress-bar bg-success"
+                        style="width:{{ progress }}%;">
+                    </div>
+                </div>
+
+                <div class="mt-2 text-muted">
+                    {{ paid_installments }} of {{ total_installments }}
+                    installments completed.
+                </div>
+
+            </div>
+        </div>
     </div>
 
     <!-- Payment History -->
@@ -115,6 +146,7 @@
                 <thead>
                     <tr>
                         <th>Date</th>
+                        <th>Method</th>
                         <th>Amount Paid</th>
                     </tr>
                 </thead>
@@ -122,11 +154,18 @@
                     {% for payment in payments %}
                     <tr>
                         <td>{{ payment.payment_date }}</td>
-                        <td><strong style="color:var(--primary);">₦{{ payment.amount_paid }}</strong></td>
+                        <td>{{ payment.get_method_display }}</td>
+                        <td>
+                            <strong style="color:var(--primary);">
+                                ₦{{ payment.amount_paid }}
+                            </strong>
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="2" class="text-center text-muted py-4">No payments recorded.</td>
+                        <td colspan="3" class="text-center text-muted py-4">
+                            No payments recorded.
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

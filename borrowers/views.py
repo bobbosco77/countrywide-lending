@@ -54,34 +54,51 @@ def is_manager_or_superuser(user):
 # ==================================================
 
 def user_login(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard')
 
-    if request.method == 'POST':
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+
+    if request.method == "POST":
+
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
         user = authenticate(
             request,
-            username=request.POST.get('username'),
-            password=request.POST.get('password')
+            username=username,
+            password=password
         )
 
-        if user is not None:
+        if user:
+
             login(request, user)
 
+            messages.success(
+                request,
+                f"Welcome back, {user.get_full_name() or user.username}!"
+            )
+
+            next_url = request.GET.get("next")
+            if next_url:
+                return redirect(next_url)
+
             if user.is_superuser or is_manager(user):
-                return redirect('dashboard')
+                return redirect("dashboard")
+
             elif is_cashier(user):
-                return redirect('borrower_list')
+                return redirect("borrower_list")
+
             elif is_auditor(user):
-                return redirect('defaulters_report')
+                return redirect("defaulters_report")
+
             elif is_loan_officer(user):
-                return redirect('register')
-            else:
-                return redirect('dashboard')
+                return redirect("register")
 
-        messages.error(request, "Invalid credentials")
-        return render(request, 'login.html')
+            return redirect("dashboard")
 
-    return render(request, 'login.html')
+        messages.error(request, "Invalid username or password.")
+
+    return render(request, "login.html")
 
 # ==================================================
 # BORROWER
@@ -134,6 +151,7 @@ def register_borrower(request):
     lambda u:
     is_manager_or_superuser(u)
     or is_cashier(u)
+    or is_auditor(u)
 )
 def borrower_list(request):
 
@@ -163,18 +181,46 @@ def borrower_list(request):
 def borrower_profile(request, borrower_id):
     borrower = get_object_or_404(Borrower, id=borrower_id)
 
-    loans = Loan.objects.filter(borrower=borrower)
-    payments = Payment.objects.filter(loan__borrower=borrower)
-    schedules = RepaymentSchedule.objects.filter(loan__borrower=borrower)
+    loans = (
+        Loan.objects
+        .filter(borrower=borrower)
+        .order_by("-start_date")
+    )
 
-    return render(request, 'borrowers/profile.html', {
-        'borrower': borrower,
-        'loans': loans,
-        'payments': payments,
-        'schedules': schedules,
-        'total_borrowed': sum(l.loan_amount for l in loans),
-        'loan_balance': sum(l.balance() for l in loans),
-    })
+    payments = (
+        Payment.objects
+        .filter(loan__borrower=borrower)
+        .select_related("loan")
+        .order_by("-payment_date")
+    )
+
+    schedules = (
+        RepaymentSchedule.objects
+        .filter(loan__borrower=borrower)
+    )
+
+    total_borrowed = sum(
+        loan.loan_amount
+        for loan in loans
+    )
+
+    total_balance = sum(
+        loan.balance()
+        for loan in loans
+    )
+
+    return render(
+        request,
+        "borrowers/profile.html",
+        {
+            "borrower": borrower,
+            "loans": loans,
+            "payments": payments,
+            "schedules": schedules,
+            "total_borrowed": total_borrowed,
+            "loan_balance": total_balance,
+        }
+    )
 
 
 # ==================================================
@@ -184,38 +230,52 @@ def borrower_profile(request, borrower_id):
 @login_required
 @role_required(lambda u: is_manager_or_superuser(u) or is_loan_officer(u))
 def create_loan(request):
-    if request.method == 'POST':
-        borrower = get_object_or_404(Borrower, id=request.POST['borrower_id'])
 
-        amount = Decimal(request.POST['loan_amount'])
-        rate = Decimal(request.POST['interest_rate'])
-        months = int(request.POST['duration_months'])
+    borrowers = Borrower.objects.order_by("first_name", "last_name")
+
+    if request.method == "POST":
+
+        borrower = get_object_or_404(
+            Borrower,
+            id=request.POST.get("borrower_id")
+        )
+
+        amount = Decimal(request.POST.get("loan_amount"))
+        rate = Decimal(request.POST.get("interest_rate"))
+        months = int(request.POST.get("duration_months"))
 
         loan = Loan.objects.create(
             borrower=borrower,
             loan_amount=amount,
             interest_rate=rate,
             duration_months=months,
-            status='active'
+            status="active"
         )
 
-        interest = (amount * rate * months) / Decimal('100')
-        total = amount + interest
-        monthly = total / months
+        # Generate repayment schedule
+        loan.generate_repayment_schedule()
 
-        for i in range(1, months + 1):
-            RepaymentSchedule.objects.create(
-                loan=loan,
-                installment_number=i,
-                due_date=date.today() + timedelta(days=30 * i),
-                amount_due=monthly
-            )
+        log_action(
+            request.user,
+            "LOAN",
+            loan,
+            f"Loan #{loan.id} created for {borrower.first_name} {borrower.last_name}"
+        )
 
-        log_action(request.user, 'LOAN', loan, f"Loan created {loan.id}")
+        messages.success(
+            request,
+            "Loan created successfully."
+        )
 
-        return redirect('loan_form')
+        return redirect("loan_form")
 
-    return render(request, 'loan_form.html')
+    return render(
+        request,
+        "loan_form.html",
+        {
+            "borrowers": borrowers,
+        }
+    )
 
 
 # ==================================================
@@ -267,16 +327,42 @@ def make_payment(request):
 @login_required
 @role_required(is_manager_or_superuser)
 def dashboard(request):
-    return render(request, 'borrowers/dashboard.html', {
-        'total_borrowers': Borrower.objects.count(),
-        'active_loans': Loan.objects.filter(status='active').count(),
-        'closed_loans': Loan.objects.filter(status='closed').count(),
-        'pending_loans': Loan.objects.filter(status='pending').count(),
-        'total_loan_portfolio': Loan.objects.aggregate(total=Sum('loan_amount'))['total'] or 0,
-        'total_repayments': Payment.objects.aggregate(total=Sum('amount_paid'))['total'] or 0,
-        'loan_balance': sum(l.balance() for l in Loan.objects.all()),
-    })
 
+    recent_loans = (
+        Loan.objects
+        .select_related("borrower")
+        .order_by("-id")[:5]
+    )
+
+    recent_payments = (
+        Payment.objects
+        .select_related("loan", "loan__borrower")
+        .order_by("-id")[:5]
+    )
+
+    context = {
+        "total_borrowers": Borrower.objects.count(),
+        "active_loans": Loan.objects.filter(status="active").count(),
+        "closed_loans": Loan.objects.filter(status="closed").count(),
+        "pending_loans": Loan.objects.filter(status="pending").count(),
+        "total_loan_portfolio": Loan.objects.aggregate(
+            total=Sum("loan_amount")
+        )["total"] or 0,
+        "total_repayments": Payment.objects.aggregate(
+            total=Sum("amount_paid")
+        )["total"] or 0,
+        "loan_balance": sum(
+            loan.balance() for loan in Loan.objects.all()
+        ),
+        "recent_loans": recent_loans,
+        "recent_payments": recent_payments,
+    }
+
+    return render(
+        request,
+        "borrowers/dashboard.html",
+        context
+    )
 
 # ==================================================
 # LOGIN / AUDIT / REPORTS
@@ -284,13 +370,54 @@ def dashboard(request):
 
 @login_required
 def loan_detail(request, loan_id):
-    loan = get_object_or_404(Loan, id=loan_id)
 
-    return render(request, 'borrowers/loan_detail.html', {
-        'loan': loan,
-        'schedules': RepaymentSchedule.objects.filter(loan=loan),
-        'payments': Payment.objects.filter(loan=loan),
-    })
+    loan = get_object_or_404(
+        Loan.objects.select_related("borrower"),
+        id=loan_id
+    )
+
+    schedules = (
+        RepaymentSchedule.objects
+        .filter(loan=loan)
+        .order_by("installment_number")
+    )
+
+    payments = (
+        Payment.objects
+        .filter(loan=loan)
+        .order_by("-payment_date")
+    )
+
+    total_paid = loan.total_paid()
+    total_repayment = loan.total_repayment()
+    balance = loan.balance()
+
+    total_installments = schedules.count()
+    paid_installments = schedules.filter(status="paid").count()
+
+    progress = 0
+    if total_installments > 0:
+        progress = round(
+            (paid_installments / total_installments) * 100
+        )
+
+    context = {
+        "loan": loan,
+        "schedules": schedules,
+        "payments": payments,
+        "total_paid": total_paid,
+        "total_repayment": total_repayment,
+        "balance": balance,
+        "total_installments": total_installments,
+        "paid_installments": paid_installments,
+        "progress": progress,
+    }
+
+    return render(
+        request,
+        "borrowers/loan_detail.html",
+        context,
+    )
 
 
 @login_required
@@ -329,6 +456,7 @@ def defaulters_report(request):
         "defaulters": overdue,
         "chart_labels": json.dumps(chart_labels),
         "chart_data": json.dumps(chart_data),
+        "officers": [],   # keeps your template working
     }
 
     return render(
@@ -372,6 +500,11 @@ def loan_statement_pdf(request, loan_id):
     return response
 
 @login_required
+@role_required(
+    lambda u:
+    is_manager_or_superuser(u)
+    or is_auditor(u)
+)
 def borrowers_pdf(request):
 
     borrowers = Borrower.objects.all()

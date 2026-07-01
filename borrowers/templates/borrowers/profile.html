@@ -93,6 +93,17 @@
     <div class="card mb-4">
         <div class="card-body p-4">
             <div class="row g-3">
+                {% if borrower.guarantor_photo %}
+
+                <div class="mt-4 text-center">
+
+                    <img src="{{ borrower.guarantor_photo.url }}"
+                        class="img-thumbnail"
+                        style="width:170px;height:170px;object-fit:cover;">
+
+                </div>
+
+                {% endif %}
                 <div class="col-md-6 col-12">
                     <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px;">Full Name</div>
                     <div style="font-weight:600;">{{ borrower.guarantor_name }}</div>
@@ -124,32 +135,58 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Amount</th>
+                        <th>Loan Amoun</th>
+                        <th>Status</th>
                         <th class="d-none d-sm-table-cell">Interest</th>
                         <th class="d-none d-sm-table-cell">Duration</th>
-                        <th>Balance</th>
+                        <th>Outstanding</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for loan in loans %}
                     <tr>
+
                         <td>
                             <strong>₦{{ loan.loan_amount }}</strong>
-                            <!-- Show interest + duration inline on xs -->
-                            <div class="d-sm-none" style="font-size:12px; color:var(--text-muted); margin-top:2px;">
-                                {{ loan.interest_rate }}% · {{ loan.duration_months }} mo.
-                            </div>
                         </td>
-                        <td class="d-none d-sm-table-cell">{{ loan.interest_rate }}%</td>
-                        <td class="d-none d-sm-table-cell">{{ loan.duration_months }} mo.</td>
-                        <td style="color:var(--danger); font-weight:600;">₦{{ loan.balance }}</td>
+
                         <td>
-                            <a href="{% url 'loan_detail' loan.id %}" class="btn btn-sm btn-primary">
-                                <i class="fa-solid fa-eye me-1"></i>
-                                <span class="d-none d-sm-inline">View Loan</span>
-                            </a>
+
+                            {% if loan.status == "active" %}
+                                <span class="badge bg-success">Active</span>
+
+                            {% elif loan.status == "closed" %}
+                                <span class="badge bg-secondary">Closed</span>
+
+                            {% elif loan.status == "pending" %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+
+                            {% else %}
+                                <span class="badge bg-info">{{ loan.status }}</span>
+                            {% endif %}
+
                         </td>
+
+                        <td>{{ loan.interest_rate }}%</td>
+
+                        <td>{{ loan.duration_months }} Months</td>
+
+                        <td style="font-weight:700;color:#dc3545;">
+                            ₦{{ loan.balance }}
+                        </td>
+
+                        <td>
+
+                            <a href="{% url 'loan_detail' loan.id %}"
+                            class="btn btn-sm btn-primary">
+
+                                <i class="fa-solid fa-eye"></i>
+
+                            </a>
+
+                        </td>
+
                     </tr>
                     {% empty %}
                     <tr>
@@ -173,20 +210,55 @@
                 <thead>
                     <tr>
                         <th>Date</th>
+                        <th>Loan</th>
+                        <th>Method</th>
                         <th>Amount</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for payment in payments %}
-                    <tr>
-                        <td>{{ payment.payment_date }}</td>
-                        <td><strong style="color:var(--primary);">₦{{ payment.amount_paid }}</strong></td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="2" class="text-center text-muted py-4">No payments recorded.</td>
-                    </tr>
-                    {% endfor %}
+
+                {% for payment in payments %}
+
+                <tr>
+
+                    <td>{{ payment.payment_date }}</td>
+
+                    <td>
+
+                        ₦{{ payment.loan.loan_amount }}
+
+                    </td>
+
+                    <td>
+
+                        {{ payment.method|title }}
+
+                    </td>
+
+                    <td>
+
+                        <strong style="color:green;">
+                            ₦{{ payment.amount_paid }}
+                        </strong>
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                <td colspan="4" class="text-center py-4">
+
+                No payments recorded.
+
+                </td>
+
+                </tr>
+
+                {% endfor %}
+
                 </tbody>
             </table>
         </div>

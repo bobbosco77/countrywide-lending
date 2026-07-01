@@ -73,121 +73,122 @@
 
 <div class="container-fluid">
 
-<!-- HEADER -->
-<div class="dash-header">
-    <div>
-        <h4 class="mb-0">
-            <i class="fa-solid fa-triangle-exclamation text-danger"></i>
-            Defaulters Report
-        </h4>
-        <small class="text-muted">Live overdue loan tracking system</small>
-    </div>
+    <!-- HEADER -->
+    <div class="dash-header">
+        <div>
+            <h4 class="mb-0">
+                <i class="fa-solid fa-triangle-exclamation text-danger"></i>
+                Defaulters Report
+            </h4>
+            <small class="text-muted">Live overdue loan tracking system</small>
+        </div>
 
-    <div class="d-flex gap-2">
-        <a href="{% url 'export_defaulters_excel' %}" class="btn btn-success btn-smx">
-            <i class="fa fa-file-excel"></i> Excel
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{% url 'export_defaulters_excel' %}" class="btn btn-success btn-smx">
+                <i class="fa fa-file-excel"></i> Excel
+            </a>
 
-        <a href="{% url 'export_defaulters_pdf' %}" class="btn btn-danger btn-smx">
-            <i class="fa fa-file-pdf"></i> PDF
-        </a>
-    </div>
-</div>
-
-<!-- STATS -->
-<div class="row g-2 mb-3">
-    <div class="col-md-4">
-        <div class="card-box">
-            <div class="text-muted">Total Defaulters</div>
-            <div class="stat">{{ defaulters|length }}</div>
+            <a href="{% url 'export_defaulters_pdf' %}" class="btn btn-danger btn-smx">
+                <i class="fa fa-file-pdf"></i> PDF
+            </a>
         </div>
     </div>
-</div>
 
-<!-- FILTER BAR -->
-<form method="GET" class="toolbar">
+    <!-- STATS -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card-box">
+                <div class="text-muted">Total Defaulters</div>
+                <div class="stat">{{ defaulters|length }}</div>
+            </div>
+        </div>
+    </div>
 
-    <input type="text" name="search" placeholder="Search borrower..." value="{{ request.GET.search }}">
+    <!-- FILTER BAR -->
+    <form method="GET" class="toolbar">
 
-    <select name="loan_officer">
-        <option value="">All Officers</option>
-        {% for officer in officers %}
-            <option value="{{ officer.id }}">{{ officer.username }}</option>
-        {% endfor %}
-    </select>
+        <input type="text" name="search" placeholder="Search borrower..." value="{{ request.GET.search }}">
 
-    <button class="btn btn-primary btn-smx">
-        <i class="fa fa-search"></i> Filter
-    </button>
-</form>
+        <select name="loan_officer">
+            <option value="">All Officers</option>
+            {% for officer in officers %}
+                <option value="{{ officer.id }}">{{ officer.username }}</option>
+            {% endfor %}
+        </select>
 
-<!-- TABLE -->
-<div class="card-box">
+        <button class="btn btn-primary btn-smx">
+            <i class="fa fa-search"></i> Filter
+        </button>
+    </form>
 
-<div class="table-responsive">
-<table class="table table-hover">
+    <!-- TABLE -->
+    <div class="card-box">
 
-<thead>
-<tr>
-    <th>Borrower</th>
-    <th>Phone</th>
-    <th>Amount</th>
-    <th>Due Date</th>
-    <th>Days Overdue</th>
-    <th>Action</th>
-</tr>
-</thead>
+        <div class="table-responsive">
+            <table class="table table-hover">
 
-<tbody>
+                <thead>
+                <tr>
+                    <th>Borrower</th>
+                    <th>Phone</th>
+                    <th>Amount</th>
+                    <th>Due Date</th>
+                    <th>Days Overdue</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
 
-{% for item in defaulters %}
-<tr>
+                <tbody>
 
-<td>
-<strong>{{ item.loan.borrower.first_name }} {{ item.loan.borrower.last_name }}</strong>
-</td>
+                    {% for item in defaulters %}
+                    <tr>
 
-<td>{{ item.borrower.phone }}</td>
+                        <td>
+                            <strong>{{ item.loan.borrower.first_name }} {{ item.loan.borrower.last_name }}</strong>
+                        </td>
 
-<td><b>₦{{ item.amount_due }}</b></td>
+                        <td>{{ item.loan.borrower.phone }}</td>
 
-<td>{{ item.due_date }}</td>
+                        <td><b>₦{{ item.amount_due }}</b></td>
 
-<td>
-<span class="badge-overdue">
-{{ item.days_overdue }} days
-</span>
-</td>
+                        <td>{{ item.due_date|date:"d M Y" }}</td>
 
-<td>
-    <a class="wa-btn"
-       href="https://wa.me/234{{ item.borrower.phone }}"
-       target="_blank">
-        WhatsApp
-    </a>
-</td>
 
-</tr>
-{% empty %}
-<tr>
-<td colspan="6" class="text-center text-muted py-4">
-No defaulters found 🎉
-</td>
-</tr>
-{% endfor %}
+                        <td>
+                            <span class="badge-overdue">
+                                {{ item.days_overdue }} day{{ item.days_overdue|pluralize }}
+                            </span>
+                        </td>
 
-</tbody>
+                        <td>
+                            <a class="wa-btn"
+                            href="https://wa.me/234{{ item.loan.borrower.phone|cut:'0' }}"
+                            target="_blank">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                        </td>
 
-</table>
-</div>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                        No defaulters found 🎉
+                        </td>
+                    </tr>
+                    {% endfor %}
 
-</div>
+                </tbody>
 
-<!-- CHART -->
-<div class="card-box mt-3">
-    <h6>Defaulters Trend</h6>
-    <canvas id="defaultersChart"></canvas>
-</div>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- CHART -->
+    <div class="card-box mt-3">
+        <h6>Defaulters Trend</h6>
+        <canvas id="defaultersChart"></canvas>
+    </div>
 
 </div>
 
