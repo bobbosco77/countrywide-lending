@@ -4,7 +4,40 @@ from .models import Payment
 
 @admin.register(Borrower)
 class BorrowerAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'last_name', 'phone', 'city', 'state')
+    list_display = (
+        'first_name',
+        'last_name',
+        'phone',
+        'city',
+        'state'
+    )
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+    def has_add_permission(self, request):
+        if request.user.is_superuser:
+            return True
+
+        return request.user.groups.filter(
+            name__in=["Manager", "Loan Officer"]
+        ).exists()
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+
+        return request.user.groups.filter(
+            name__in=["Manager", "Loan Officer"]
+        ).exists()
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+
+        return request.user.groups.filter(
+            name="Manager"
+        ).exists()
 
 
 @admin.register(Loan)
@@ -39,11 +72,35 @@ class LoanAdmin(admin.ModelAdmin):
 
     get_balance.short_description = "Remaining Balance"
 
-    def has_delete_permission(self, request, obj=None):
-        return request.user.groups.filter(name='Manager').exists()
+    def has_view_permission(self, request, obj=None):
+        return True
+
+
+    def has_add_permission(self, request):
+        if request.user.is_superuser:
+            return True
+
+        return request.user.groups.filter(
+            name__in=["Manager", "Loan Officer"]
+        ).exists()
+
 
     def has_change_permission(self, request, obj=None):
-        return request.user.groups.exclude(name='Auditor').exists()
+        if request.user.is_superuser:
+            return True
+
+        return request.user.groups.filter(
+            name__in=["Manager", "Loan Officer"]
+        ).exists()
+
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+
+        return request.user.groups.filter(
+            name="Manager"
+        ).exists()
 
 
 @admin.register(RepaymentSchedule)
@@ -58,6 +115,23 @@ class RepaymentScheduleAdmin(admin.ModelAdmin):
 
     list_filter = ('status',)
 
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+    
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('loan', 'amount_paid', 'payment_date', 'method')
+    list_display = (
+        'loan',
+        'amount_paid',
+        'payment_date',
+        'method'
+    )
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
