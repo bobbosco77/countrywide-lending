@@ -1,21 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import Loan, RepaymentSchedule
 from .models import Payment, RepaymentSchedule
-from datetime import date, timedelta
 
-@receiver(post_save, sender=Loan)
-def create_repayment_schedule(sender, instance, created, **kwargs):
-    if created:
-        monthly = instance.monthly_payment()
-
-        for i in range(1, instance.duration_months + 1):
-            RepaymentSchedule.objects.create(
-                loan=instance,
-                installment_number=i,
-                due_date=date.today() + timedelta(days=30 * i),
-                amount_due=monthly
-            )
 
 @receiver(post_save, sender=Payment)
 def allocate_payment(sender, instance, created, **kwargs):
@@ -32,18 +18,35 @@ def allocate_payment(sender, instance, created, **kwargs):
 
     for installment in unpaid:
 
-        if remaining_amount >= installment.amount_due:
+        installment_balance = (
+            installment.amount_due - installment.amount_paid
+        )
 
+        # Installment can be fully settled
+        if remaining_amount >= installment_balance:
+
+            installment.amount_paid += installment_balance
             installment.status = 'paid'
             installment.save()
 
-            remaining_amount -= installment.amount_due
+            remaining_amount -= installment_balance
 
+        # Partial payment
         else:
+
+            installment.amount_paid += remaining_amount
+            installment.save()
+
+            remaining_amount = 0
             break
 
     loan = instance.loan
 
-    if loan.balance() <= 0:
+    # Close the loan only when every installment is paid
+    if not RepaymentSchedule.objects.filter(
+        loan=loan,
+        status='pending'
+    ).exists():
+
         loan.status = 'closed'
         loan.save()

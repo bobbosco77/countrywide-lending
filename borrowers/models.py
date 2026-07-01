@@ -131,7 +131,7 @@ class Loan(models.Model):
             RepaymentSchedule.objects.create(
                 loan=self,
                 installment_number=installment,
-                due_date=date.today() + timedelta(days=7 * installment),
+                due_date=date.today() + timedelta(weeks=installment),
                 amount_due=weekly_amount,
                 status='pending'
             )
@@ -140,22 +140,44 @@ class Loan(models.Model):
         return f"{self.borrower.first_name} {self.borrower.last_name} - ₦{self.loan_amount}"
 
 class RepaymentSchedule(models.Model):
-    loan = models.ForeignKey(Loan, on_delete=models.CASCADE,
-        related_name='schedules')
+    loan = models.ForeignKey(
+        Loan,
+        on_delete=models.CASCADE,
+        related_name='schedules'
+    )
 
     installment_number = models.IntegerField()
+
     due_date = models.DateField()
-    amount_due = models.DecimalField(max_digits=12, decimal_places=2)
+
+    amount_due = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    amount_paid = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
 
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('paid', 'Paid'),
     ]
 
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+
+    @property
+    def balance(self):
+        return self.amount_due - self.amount_paid
 
     def __str__(self):
-        return f"Loan {self.loan.id} - Installment {self.installment_number}"
+        return f"Loan {self.loan.id} - Week {self.installment_number}"
     
 class Payment(models.Model):
 
