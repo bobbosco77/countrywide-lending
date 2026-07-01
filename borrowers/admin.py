@@ -13,7 +13,7 @@ class LoanAdmin(admin.ModelAdmin):
         'borrower',
         'loan_amount',
         'interest_rate',
-        'duration_months',
+        'duration_weeks',
         'status',
         'get_balance'
     )
