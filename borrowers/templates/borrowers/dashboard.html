@@ -144,29 +144,65 @@
         <!-- Recent Payments -->
         <div class="col-lg-6 col-12">
             <div class="table-card">
+
                 <div class="table-card-header">
-                    <h5><i class="fa-solid fa-money-bill-wave me-2 text-warning"></i>Recent Payments</h5>
+                    <h5>
+                        <i class="fa-solid fa-money-bill-wave me-2 text-warning"></i>
+                        Recent Payments
+                    </h5>
                 </div>
+
                 <div class="table-responsive">
+
                     <table class="table">
+
                         <thead>
                             <tr>
+                                <th>Borrower</th>
                                 <th>Date</th>
                                 <th>Amount</th>
                             </tr>
                         </thead>
+
                         <tbody>
-                            {% for payment in recent_payments %}
+
+                        {% for payment in recent_payments %}
                             <tr>
-                                <td>{{ payment.payment_date }}</td>
-                                <td><strong>₦{{ payment.amount_paid }}</strong></td>
+
+                                <td>
+                                    <strong>
+                                        {{ payment.loan.borrower.first_name }}
+                                        {{ payment.loan.borrower.last_name }}
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    {{ payment.payment_date|date:"d M Y" }}
+                                </td>
+
+                                <td>
+                                    <strong style="color:var(--primary);">
+                                        ₦{{ payment.amount_paid }}
+                                    </strong>
+                                </td>
+
                             </tr>
-                            {% empty %}
-                            <tr><td colspan="2" class="text-center text-muted py-4">No recent payments.</td></tr>
-                            {% endfor %}
+                        {% empty %}
+
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">
+                                    No recent payments.
+                                </td>
+                            </tr>
+
+                        {% endfor %}
+
                         </tbody>
+
                     </table>
+
                 </div>
+
             </div>
         </div>
 
