@@ -49,10 +49,6 @@ def allocate_payment(sender, instance, created, **kwargs):
     loan = instance.loan
 
     # Close the loan only when every installment is paid
-    if not RepaymentSchedule.objects.filter(
-        loan=loan,
-        status='pending'
-    ).exists():
-
-        loan.status = 'closed'
-        loan.save()
+    if loan.balance() <= 0:
+        loan.status = "closed"
+        loan.save(update_fields=["status"])

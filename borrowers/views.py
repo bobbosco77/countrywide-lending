@@ -301,19 +301,6 @@ def make_payment(request):
             method=request.POST.get('method', 'cash')
         )
 
-        remaining = amount
-
-        for s in RepaymentSchedule.objects.filter(loan=loan, status='pending'):
-            if remaining >= s.amount_due:
-                remaining -= s.amount_due
-                s.status = 'paid'
-                s.save()
-            else:
-                break
-
-        if not RepaymentSchedule.objects.filter(loan=loan, status='pending').exists():
-            loan.status = 'closed'
-            loan.save()
 
         return redirect('payment_receipt', payment.id)
     return render(request, 'borrowers/make_payment.html', {'loans': loans})
