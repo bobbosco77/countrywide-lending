@@ -225,6 +225,9 @@ class Payment(models.Model):
     def __str__(self):
         return f"{self.loan.borrower.first_name} - {self.amount_paid}"
 
+    @property
+    def receipt_number(self):
+        return f"CW-{self.payment_date.strftime('%Y%m%d')}-{self.id:06d}"
 
 class AuditLog(models.Model):
 

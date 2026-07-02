@@ -55,6 +55,11 @@ urlpatterns = [
         name='make_payment'
     ),
     path(
+        'payment/<int:payment_id>/receipt/',
+        views.payment_receipt,
+        name='payment_receipt'
+    ),
+    path(
         'logout/',
         views.user_logout,
         name='logout'

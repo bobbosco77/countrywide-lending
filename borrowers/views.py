@@ -295,7 +295,7 @@ def make_payment(request):
             messages.error(request, "Payment must be greater than zero")
             return redirect('make_payment')
 
-        Payment.objects.create(
+        payment = Payment.objects.create(
             loan=loan,
             amount_paid=amount,
             method=request.POST.get('method', 'cash')
@@ -315,9 +315,37 @@ def make_payment(request):
             loan.status = 'closed'
             loan.save()
 
-        return redirect('loan_detail', loan.id)
-
+        return redirect('payment_receipt', payment.id)
     return render(request, 'borrowers/make_payment.html', {'loans': loans})
+
+@login_required
+@role_required(lambda u: is_manager_or_superuser(u) or is_cashier(u))
+def payment_receipt(request, payment_id):
+
+    payment = get_object_or_404(
+        Payment.objects.select_related(
+            "loan",
+            "loan__borrower"
+        ),
+        id=payment_id
+    )
+
+    loan = payment.loan
+
+    context = {
+        "payment": payment,
+        "loan": loan,
+        "borrower": loan.borrower,
+        "total_paid": loan.total_paid(),
+        "balance": loan.balance(),
+    }
+
+    return render(
+        request,
+        "borrowers/receipt.html",
+        context
+    )
+
 
 
 # ==================================================

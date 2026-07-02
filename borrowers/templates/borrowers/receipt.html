@@ -1,0 +1,649 @@
+{% extends "borrowers/base.html" %}
+
+{% block content %}
+
+<style>
+
+body{
+    background:#f5f7fb;
+}
+
+.receipt-container{
+    max-width:950px;
+    margin:30px auto;
+}
+
+.receipt-card{
+
+    background:#fff;
+    border-radius:15px;
+    overflow:hidden;
+    box-shadow:0 10px 35px rgba(0,0,0,.08);
+
+}
+
+.receipt-header{
+
+    background:#0b5d3b;
+    color:#fff;
+    padding:30px;
+
+}
+
+.company-name{
+
+    font-size:30px;
+    font-weight:700;
+
+}
+
+.company-info{
+
+    font-size:14px;
+    opacity:.95;
+    line-height:1.7;
+
+}
+
+.receipt-number{
+
+    text-align:right;
+
+}
+
+.receipt-number h4{
+
+    margin:0;
+    font-weight:700;
+
+}
+
+.receipt-number h2{
+
+    font-weight:bold;
+    margin-top:10px;
+
+}
+
+.section-title{
+
+    color:#0b5d3b;
+    font-weight:700;
+    margin-bottom:15px;
+    border-left:5px solid #198754;
+    padding-left:10px;
+
+}
+
+.table td{
+
+    vertical-align:middle;
+
+}
+
+.summary-box{
+
+    background:#f8f9fa;
+    border-radius:12px;
+    padding:25px;
+    text-align:center;
+    height:100%;
+
+}
+
+.summary-box small{
+
+    color:#777;
+    font-weight:600;
+
+}
+
+.summary-box h3{
+
+    margin-top:10px;
+    font-weight:700;
+
+}
+
+.signature{
+
+    margin-top:60px;
+
+}
+
+.signature hr{
+
+    border-top:2px solid #000;
+
+}
+
+.footer{
+
+    background:#fafafa;
+    border-top:1px solid #ddd;
+    padding:20px;
+    text-align:center;
+    color:#777;
+    font-size:13px;
+
+}
+
+.watermark{
+
+    position:absolute;
+    top:45%;
+    left:50%;
+    transform:translate(-50%,-50%) rotate(-30deg);
+
+    font-size:120px;
+    color:rgba(25,135,84,.05);
+
+    font-weight:bold;
+
+    pointer-events:none;
+
+}
+
+.receipt-body{
+
+    position:relative;
+    padding:35px;
+
+}
+
+@media print{
+
+.no-print{
+
+display:none;
+
+}
+
+body{
+
+background:white;
+
+}
+
+.receipt-card{
+
+box-shadow:none;
+
+}
+
+}
+
+</style>
+
+
+<div class="receipt-container">
+
+<div class="receipt-card">
+
+<div class="receipt-header">
+
+<div class="row">
+
+<div class="col-md-8">
+
+<div class="company-name">
+
+COUNTRYWIDE LENDING & SERVICES
+
+</div>
+
+<div class="company-info">
+
+Financial Services & Loan Management<br>
+
+Ibadan, Oyo State, Nigeria<br>
+
+Phone: +234 XXX XXX XXXX<br>
+
+Email: info@countrywidelending.com
+
+</div>
+
+</div>
+
+<div class="col-md-4 receipt-number">
+
+<h4>PAYMENT RECEIPT</h4>
+
+<h2>{{ payment.receipt_number }}</h2>
+
+<small>
+
+Date: {{ payment.payment_date }}
+
+</small>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<div class="receipt-body">
+
+<div class="watermark">
+
+PAID
+
+</div>
+
+<div class="row">
+
+<div class="col-md-6">
+
+<h5 class="section-title">
+
+Borrower Information
+
+</h5>
+
+<table class="table table-borderless">
+
+<tr>
+
+<th>Name</th>
+
+<td>
+
+{{ payment.loan.borrower.first_name }}
+
+{{ payment.loan.borrower.last_name }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>Phone</th>
+
+<td>{{ payment.loan.borrower.phone }}</td>
+
+</tr>
+
+<tr>
+
+<th>Email</th>
+
+<td>{{ payment.loan.borrower.email }}</td>
+
+</tr>
+
+<tr>
+
+<th>Loan ID</th>
+
+<td>#{{ payment.loan.id }}</td>
+
+</tr>
+
+</table>
+
+</div>
+
+<div class="col-md-6">
+
+<h5 class="section-title">
+
+Payment Details
+
+</h5>
+
+<table class="table table-borderless">
+
+<tr>
+
+<th>Payment Method</th>
+
+<td>{{ payment.get_method_display }}</td>
+
+</tr>
+
+<tr>
+
+<th>Cashier</th>
+
+<td>
+
+{{ request.user.get_full_name|default:request.user.username }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>Receipt No.</th>
+
+<td>{{ payment.receipt_number }}</td>
+
+</tr>
+
+<tr>
+
+<th>Status</th>
+
+<td>
+
+<span class="badge bg-success">
+
+Successful
+
+</span>
+
+</td>
+
+</tr>
+
+</table>
+
+</div>
+
+</div>
+
+
+
+<div class="alert alert-success mt-4">
+
+<strong>
+
+Received with thanks from
+
+</strong>
+
+{{ payment.loan.borrower.first_name }}
+
+{{ payment.loan.borrower.last_name }}
+
+the sum of
+
+<strong>
+
+₦{{ payment.amount_paid }}
+
+</strong>
+
+being repayment towards
+
+Loan No.
+
+<strong>
+
+#{{ payment.loan.id }}
+
+</strong>
+
+</div>
+
+
+
+<div class="row mt-4 g-3">
+
+<div class="col-md-3">
+
+<div class="summary-box">
+
+<small>Amount Paid</small>
+
+<h3 class="text-success">
+
+₦{{ payment.amount_paid }}
+
+</h3>
+
+</div>
+
+</div>
+
+<div class="col-md-3">
+
+<div class="summary-box">
+
+<small>Total Paid</small>
+
+<h3 class="text-primary">
+
+₦{{ payment.loan.total_paid }}
+
+</h3>
+
+</div>
+
+</div>
+
+<div class="col-md-3">
+
+<div class="summary-box">
+
+<small>Outstanding Balance</small>
+
+<h3 class="text-danger">
+
+₦{{ payment.loan.balance }}
+
+</h3>
+
+</div>
+
+</div>
+
+<div class="col-md-3">
+
+<div class="summary-box">
+
+<small>Weekly Installment</small>
+
+<h3 style="color:#0b5d3b;">
+
+₦{{ payment.loan.weekly_payment }}
+
+</h3>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<h5 class="section-title mt-5">
+
+Loan Summary
+
+</h5>
+
+<table class="table table-bordered">
+
+<tr>
+
+<th width="35%">
+
+Loan Amount
+
+</th>
+
+<td>
+
+₦{{ payment.loan.loan_amount }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Interest Rate
+
+</th>
+
+<td>
+
+{{ payment.loan.interest_rate }}%
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Duration
+
+</th>
+
+<td>
+
+{{ payment.loan.duration_weeks }}
+
+Weeks
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Total Repayment
+
+</th>
+
+<td>
+
+₦{{ payment.loan.total_repayment }}
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>
+
+Loan Status
+
+</th>
+
+<td>
+
+{% if payment.loan.status == "closed" %}
+
+<span class="badge bg-success">
+
+Closed
+
+</span>
+
+{% else %}
+
+<span class="badge bg-primary">
+
+{{ payment.loan.status|title }}
+
+</span>
+
+{% endif %}
+
+</td>
+
+</tr>
+
+</table>
+
+
+
+<div class="row signature">
+
+<div class="col-6 text-center">
+
+<br><br><br>
+
+<hr>
+
+Customer Signature
+
+</div>
+
+<div class="col-6 text-center">
+
+<br><br><br>
+
+<hr>
+
+Authorized Cashier
+
+</div>
+
+</div>
+
+
+
+<div class="text-center mt-5 no-print">
+
+<button
+
+class="btn btn-success"
+
+onclick="window.print()">
+
+<i class="fa fa-print"></i>
+
+Print Receipt
+
+</button>
+
+<a
+
+href="{% url 'loan_detail' payment.loan.id %}"
+
+class="btn btn-secondary">
+
+Back to Loan
+
+</a>
+
+</div>
+
+</div>
+
+
+
+<div class="footer">
+
+<strong>
+
+Thank you for choosing CountryWide Lending & Services.
+
+</strong>
+
+<br><br>
+
+This receipt confirms payment received and recorded in our Loan Management System.
+
+<br>
+
+This is a computer-generated receipt and is valid without a signature.
+
+<br><br>
+
+© {% now "Y" %} CountryWide Lending & Services. All Rights Reserved.
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}
