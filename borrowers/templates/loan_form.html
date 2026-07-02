@@ -4,15 +4,15 @@
 
 {% block content %}
 
-<div class="container-fluid">
+<div class="container-fluid px-0">
 
     <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="topbar">
         <div>
-            <h3 class="fw-bold mb-1">Create Loan</h3>
-            <p class="text-muted mb-0">
+            <div class="page-title">Create Loan</div>
+            <div style="font-size:13px; color:var(--text-muted); margin-top:2px;">
                 Issue a new loan to a registered borrower
-            </p>
+            </div>
         </div>
     </div>
 
@@ -34,82 +34,38 @@
             <div class="card border-0 shadow-sm">
 
                 <div class="card-header bg-white py-3">
-
                     <div class="d-flex align-items-center">
-
-                        <div
-                            class="rounded-circle d-flex align-items-center justify-content-center me-3"
-                            style="
-                                width:55px;
-                                height:55px;
-                                background:#eaf6ef;
-                                color:#0a4f2e;
-                                font-size:22px;
-                            "
-                        >
+                        <div class="icon-circle-soft me-3">
                             <i class="fa-solid fa-file-invoice-dollar"></i>
                         </div>
-
                         <div>
-                            <h5 class="fw-bold mb-0">
-                                New Loan Application
-                            </h5>
-
-                            <small class="text-muted">
-                                Complete all required fields below
-                            </small>
+                            <h5 class="fw-bold mb-0">New Loan Application</h5>
+                            <small class="text-muted">Complete all required fields below</small>
                         </div>
-
                     </div>
-
                 </div>
 
                 <div class="card-body p-4">
 
                     <form method="POST">
-
                         {% csrf_token %}
 
                         <!-- Borrower -->
-
                         <div class="mb-4">
-
-                            <label class="form-label fw-semibold">
-                                Borrower
-                            </label>
-
-                            <select
-                                name="borrower_id"
-                                class="form-select"
-                                required
-                            >
-
-                                <option value="">
-                                    -- Select Borrower --
-                                </option>
-
+                            <label class="form-label fw-semibold">Borrower</label>
+                            <select name="borrower_id" class="form-select" required>
+                                <option value="">-- Select Borrower --</option>
                                 {% for borrower in borrowers %}
-
                                     <option value="{{ borrower.id }}">
-                                        {{ borrower.first_name }}
-                                        {{ borrower.last_name }}
-                                        ({{ borrower.phone }})
+                                        {{ borrower.first_name }} {{ borrower.last_name }} ({{ borrower.phone }})
                                     </option>
-
                                 {% endfor %}
-
                             </select>
-
                         </div>
 
                         <!-- Loan Amount -->
-
                         <div class="mb-4">
-
-                            <label class="form-label fw-semibold">
-                                Loan Amount (₦)
-                            </label>
-
+                            <label class="form-label fw-semibold">Loan Amount (₦)</label>
                             <input
                                 type="number"
                                 class="form-control"
@@ -118,17 +74,11 @@
                                 min="1"
                                 required
                             >
-
                         </div>
 
                         <!-- Interest -->
-
                         <div class="mb-4">
-
-                            <label class="form-label fw-semibold">
-                                Interest Rate (%)
-                            </label>
-
+                            <label class="form-label fw-semibold">Interest Rate (%)</label>
                             <input
                                 type="number"
                                 step="0.01"
@@ -137,17 +87,11 @@
                                 placeholder="Example: 5"
                                 required
                             >
-
                         </div>
 
                         <!-- Duration -->
-
                         <div class="mb-4">
-
-                            <label class="form-label fw-semibold">
-                                Duration (weeks)
-                            </label>
-
+                            <label class="form-label fw-semibold">Duration (weeks)</label>
                             <input
                                 type="number"
                                 class="form-control"
@@ -156,19 +100,13 @@
                                 min="1"
                                 required
                             >
-
                         </div>
 
                         <div class="d-grid">
-
-                            <button
-                                type="submit"
-                                class="btn btn-success btn-lg"
-                            >
+                            <button type="submit" class="btn btn-success btn-lg">
                                 <i class="fa-solid fa-plus me-2"></i>
                                 Create Loan
                             </button>
-
                         </div>
 
                     </form>
@@ -180,17 +118,12 @@
         </div>
 
         <!-- Information Panel -->
-
         <div class="col-lg-4 mt-4 mt-lg-0">
 
             <div class="card border-0 shadow-sm">
 
                 <div class="card-header bg-white">
-
-                    <h6 class="fw-bold mb-0">
-                        Loan Guidelines
-                    </h6>
-
+                    <h6 class="fw-bold mb-0">Loan Guidelines</h6>
                 </div>
 
                 <div class="card-body">

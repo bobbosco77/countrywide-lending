@@ -26,190 +26,80 @@
             <div class="card shadow-sm border-0">
 
                 <div class="card-header bg-white py-3">
-
                     <div class="d-flex align-items-center">
-
-                        <div class="stat-icon green me-3"
-                             style="width:55px;height:55px;font-size:22px;">
+                        <div class="stat-icon green me-3" style="width:55px;height:55px;font-size:22px;">
                             <i class="fa-solid fa-money-bill-wave"></i>
                         </div>
-
                         <div>
-
-                            <h5 class="mb-1 fw-bold">
-                                Record Loan Payment
-                            </h5>
-
-                            <small class="text-muted">
-                                Enter payment information below
-                            </small>
-
+                            <h5 class="mb-1 fw-bold">Record Loan Payment</h5>
+                            <small class="text-muted">Enter payment information below</small>
                         </div>
-
                     </div>
-
                 </div>
 
                 <div class="card-body p-4">
 
                     {% if messages %}
                         {% for message in messages %}
-                            <div class="alert alert-success">
-                                {{ message }}
-                            </div>
+                            <div class="alert alert-success">{{ message }}</div>
                         {% endfor %}
                     {% endif %}
 
                     <form method="POST">
-
                         {% csrf_token %}
 
                         <!-- Borrower -->
-
                         <div class="mb-4">
-
-                            <label class="form-label fw-semibold">
-
-                                Borrower / Loan
-
-                            </label>
-
-                            <select
-                                class="form-select"
-                                name="loan_id"
-                                required>
-
-                                <option value="">
-                                    Select Loan...
-                                </option>
-
+                            <label class="form-label fw-semibold">Borrower / Loan</label>
+                            <select class="form-select" name="loan_id" required>
+                                <option value="">Select Loan...</option>
                                 {% for loan in loans %}
-
                                 <option value="{{ loan.id }}">
-
-                                    {{ loan.borrower.first_name }}
-                                    {{ loan.borrower.last_name }}
-
-                                    |
-                                    ₦{{ loan.loan_amount }}
-
-                                    |
-
-                                    {{ loan.status|title }}
-
+                                    {{ loan.borrower.first_name }} {{ loan.borrower.last_name }} | ₦{{ loan.loan_amount }} | {{ loan.status|title }}
                                 </option>
-
                                 {% endfor %}
-
                             </select>
-
                         </div>
 
                         <!-- Amount -->
-
                         <div class="mb-4">
-
-                            <label class="form-label fw-semibold">
-
-                                Payment Amount
-
-                            </label>
-
+                            <label class="form-label fw-semibold">Payment Amount</label>
                             <div class="input-group">
-
-                                <span class="input-group-text">
-
-                                    ₦
-
-                                </span>
-
+                                <span class="input-group-text">₦</span>
                                 <input
-
                                     type="number"
-
                                     step="0.01"
-
                                     min="0.01"
-
                                     name="amount_paid"
-
                                     class="form-control"
-
                                     placeholder="Enter payment amount"
-
                                     required>
-
                             </div>
-
                         </div>
 
                         <!-- Method -->
-
                         <div class="mb-4">
-
-                            <label class="form-label fw-semibold">
-
-                                Payment Method
-
-                            </label>
-
-                            <select
-                                class="form-select"
-                                name="method">
-
-                                <option value="cash">
-
-                                    Cash
-
-                                </option>
-
-                                <option value="transfer">
-
-                                    Bank Transfer
-
-                                </option>
-
-                                <option value="mobile">
-
-                                    Mobile Money
-
-                                </option>
-
+                            <label class="form-label fw-semibold">Payment Method</label>
+                            <select class="form-select" name="method">
+                                <option value="cash">Cash</option>
+                                <option value="transfer">Bank Transfer</option>
+                                <option value="mobile">Mobile Money</option>
                             </select>
-
                         </div>
 
                         <!-- Notice -->
-
                         <div class="alert alert-light border">
-
                             <i class="fa-solid fa-circle-info text-success me-2"></i>
-
                             Ensure the payment amount matches the amount received before submitting.
-
                         </div>
 
                         <!-- Buttons -->
-
                         <div class="d-flex justify-content-between mt-4">
-
-                            <a
-                                href="{% url 'dashboard' %}"
-                                class="btn btn-light">
-
-                                Cancel
-
-                            </a>
-
-                            <button
-                                class="btn btn-success px-5">
-
+                            <a href="{% url 'dashboard' %}" class="btn btn-light">Cancel</a>
+                            <button class="btn btn-success px-5">
                                 <i class="fa-solid fa-check me-2"></i>
-
                                 Record Payment
-
                             </button>
-
                         </div>
 
                     </form>

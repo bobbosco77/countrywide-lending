@@ -74,4 +74,38 @@ urlpatterns = [
         views.export_defaulters_pdf,
         name='export_defaulters_pdf'
     ),
+    path(
+    "reports/loans/",
+    views.all_loans_report,
+        name="all_loans_report",
+    ),
+
+    path(
+        "reports/payments/",
+        views.all_payments_report,
+        name="all_payments_report",
+    ),
+    path(
+    "reports/loans/pdf/",
+    views.export_loans_pdf,
+    name="export_loans_pdf",
+    ),
+
+    path(
+        "reports/payments/pdf/",
+        views.export_payments_pdf,
+        name="export_payments_pdf",
+    ),
+
+    path(
+        "reports/loans/excel/",
+        views.export_loans_excel,
+        name="export_loans_excel",
+    ),
+
+    path(
+        "reports/payments/excel/",
+        views.export_payments_excel,
+        name="export_payments_excel",
+    ),
 ]

@@ -1,0 +1,164 @@
+{% extends "borrowers/base.html" %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+    <div class="topbar">
+        <div>
+            <div class="page-title">Loan Register</div>
+            <div style="font-size:13px; color:var(--text-muted); margin-top:2px;">
+                CountryWide Lending & Services
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'export_loans_pdf' %}" class="btn btn-danger">
+                <i class="fa fa-file-pdf me-2"></i>
+                PDF
+            </a>
+            <a href="{% url 'export_loans_excel' %}" class="btn btn-success">
+                <i class="fa fa-file-excel me-2"></i>
+                Excel
+            </a>
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="fa fa-print me-2"></i>
+                Print
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get">
+                <div class="row g-3">
+
+                    <div class="col-md-3">
+                        <input
+                            type="text"
+                            name="search"
+                            class="form-control"
+                            placeholder="Borrower Name or Phone"
+                            value="{{ request.GET.search }}">
+                    </div>
+
+                    <div class="col-md-2">
+                        <select name="status" class="form-select">
+                            <option value="">All Status</option>
+                            {% for value,label in statuses %}
+                            <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <input type="date" name="from_date" class="form-control" value="{{ request.GET.from_date }}">
+                    </div>
+
+                    <div class="col-md-2">
+                        <input type="date" name="to_date" class="form-control" value="{{ request.GET.to_date }}">
+                    </div>
+
+                    <div class="col-md-3">
+                        <button class="btn btn-primary w-100">Filter Report</button>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loan Table -->
+    <div class="table-card mb-4">
+        <div class="table-card-header">
+            <h5><i class="fa-solid fa-file-invoice-dollar me-2 text-success"></i>All Loans</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-success">
+                    <tr>
+                        <th>#</th>
+                        <th>Borrower</th>
+                        <th>Phone</th>
+                        <th>Loan Amount</th>
+                        <th>Interest</th>
+                        <th>Duration</th>
+                        <th>Total Repayment</th>
+                        <th>Balance</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in loans %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ loan.borrower.first_name }} {{ loan.borrower.last_name }}</td>
+                        <td>{{ loan.borrower.phone }}</td>
+                        <td>₦{{ loan.loan_amount }}</td>
+                        <td>{{ loan.interest_rate }}%</td>
+                        <td>{{ loan.duration_weeks }} Weeks</td>
+                        <td>₦{{ loan.total_repayment }}</td>
+                        <td>₦{{ loan.balance }}</td>
+                        <td>
+                            {% if loan.status == "active" %}
+                                <span class="badge bg-success">Active</span>
+                            {% elif loan.status == "closed" %}
+                                <span class="badge bg-secondary">Closed</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">{{ loan.status|title }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ loan.start_date }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center text-muted py-4">No loans found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fa-solid fa-briefcase"></i></div>
+                <div>
+                    <div class="stat-label">Total Portfolio</div>
+                    <div class="stat-value" style="font-size:22px;">₦{{ total_portfolio }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon red"><i class="fa-solid fa-scale-balanced"></i></div>
+                <div>
+                    <div class="stat-label">Total Outstanding Balance</div>
+                    <div class="stat-value" style="font-size:22px;">₦{{ total_balance }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    @media print {
+        .btn,
+        form,
+        .navbar,
+        .sidebar,
+        .mobile-topbar,
+        .sidebar-overlay {
+            display: none !important;
+        }
+    }
+</style>
+
+{% endblock %}
