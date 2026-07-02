@@ -163,6 +163,7 @@ class RepaymentSchedule(models.Model):
 
     STATUS_CHOICES = [
         ('pending', 'Pending'),
+        ('partial', 'Partial'),
         ('paid', 'Paid'),
     ]
 
@@ -176,9 +177,22 @@ class RepaymentSchedule(models.Model):
     def balance(self):
         return self.amount_due - self.amount_paid
 
+    def save(self, *args, **kwargs):
+
+        if self.amount_paid >= self.amount_due:
+            self.amount_paid = self.amount_due
+            self.status = 'paid'
+
+        elif self.amount_paid > 0:
+            self.status = 'partial'
+
+        else:
+            self.status = 'pending'
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"Loan {self.loan.id} - Week {self.installment_number}"
-    
+        return f"Loan {self.loan.id} - Week {self.installment_number}"    
 class Payment(models.Model):
 
     loan = models.ForeignKey(

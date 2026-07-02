@@ -22,7 +22,7 @@ def allocate_payment(sender, instance, created, **kwargs):
             installment.amount_due - installment.amount_paid
         )
 
-        # Installment can be fully settled
+        # Full payment for this installment
         if remaining_amount >= installment_balance:
 
             installment.amount_paid += installment_balance
@@ -35,6 +35,12 @@ def allocate_payment(sender, instance, created, **kwargs):
         else:
 
             installment.amount_paid += remaining_amount
+
+            if installment.amount_paid >= installment.amount_due:
+                installment.status = 'paid'
+            else:
+                installment.status = 'partial'
+
             installment.save()
 
             remaining_amount = 0

@@ -395,11 +395,17 @@ def loan_detail(request, loan_id):
     total_installments = schedules.count()
     paid_installments = schedules.filter(status="paid").count()
 
+    # Progress based on amount paid
     progress = 0
-    if total_installments > 0:
+
+    if total_repayment > 0:
         progress = round(
-            (paid_installments / total_installments) * 100
+            float((total_paid / total_repayment) * 100),
+            1
         )
+
+    # Never exceed 100%
+    progress = min(progress, 100)
 
     context = {
         "loan": loan,
