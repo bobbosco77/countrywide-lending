@@ -41,15 +41,15 @@ urlpatterns = [
     ),
 
     path(
-        'loans/pdf/',
-        views.loan_register_pdf,
-        name='loan_register_pdf'
-    ),
-
-    path(
         'loans/excel/',
         views.loan_register_excel_view,
         name='loan_register_excel'
+    ),
+
+    path(
+        "loan/<int:loan_id>/",
+        views.loan_detail,
+        name="loan_detail",
     ),
 
     path(
