@@ -255,3 +255,38 @@ class AuditLog(models.Model):
     def __str__(self):
         return f"{self.user} - {self.action} - {self.model_name}"
     
+
+from django.db import models
+
+
+class CompanySettings(models.Model):
+    company_name = models.CharField(max_length=200)
+    logo = models.ImageField(upload_to="company/", blank=True, null=True)
+
+    address = models.TextField(blank=True)
+    phone = models.CharField(max_length=30, blank=True)
+    email = models.EmailField(blank=True)
+    website = models.URLField(blank=True)
+
+    currency_symbol = models.CharField(
+        max_length=10,
+        default="₦"
+    )
+
+    receipt_prefix = models.CharField(
+        max_length=20,
+        default="CWLS"
+    )
+
+    report_footer = models.TextField(
+        default="Thank you for choosing CountryWide Lending & Services."
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Company Settings"
+        verbose_name_plural = "Company Settings"
+
+    def __str__(self):
+        return self.company_name

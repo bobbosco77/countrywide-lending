@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Borrower, Loan, RepaymentSchedule
 from .models import Payment
+from .models import CompanySettings
 
 @admin.register(Borrower)
 class BorrowerAdmin(admin.ModelAdmin):
@@ -135,3 +136,46 @@ class PaymentAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
+
+@admin.register(CompanySettings)
+class CompanySettingsAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "company_name",
+        "phone",
+        "email",
+        "updated_at",
+    )
+
+    readonly_fields = (
+        "updated_at",
+    )
+
+    fieldsets = (
+
+        ("Company Information", {
+            "fields": (
+                "company_name",
+                "logo",
+                "address",
+                "phone",
+                "email",
+                "website",
+            )
+        }),
+
+        ("System Settings", {
+            "fields": (
+                "currency_symbol",
+                "receipt_prefix",
+                "report_footer",
+            )
+        }),
+
+        ("Audit", {
+            "fields": (
+                "updated_at",
+            )
+        }),
+
+    )
