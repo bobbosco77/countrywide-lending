@@ -200,7 +200,13 @@ class Payment(models.Model):
     loan = models.ForeignKey(
         Loan,
         on_delete=models.CASCADE,
-        related_name='payments'
+        related_name="payments"
+    )
+
+    receipt_number = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True
     )
 
     amount_paid = models.DecimalField(
@@ -213,24 +219,41 @@ class Payment(models.Model):
     )
 
     PAYMENT_METHOD = [
-        ('cash', 'Cash'),
-        ('transfer', 'Bank Transfer'),
-        ('mobile', 'Mobile Money'),
+        ("cash", "Cash"),
+        ("transfer", "Bank Transfer"),
+        ("mobile", "Mobile Money"),
     ]
 
     method = models.CharField(
         max_length=20,
         choices=PAYMENT_METHOD,
-        default='cash'
+        default="cash"
     )
 
+    def save(self, *args, **kwargs):
+
+        creating = self.pk is None
+
+        super().save(*args, **kwargs)
+
+        if creating and not self.receipt_number:
+
+            company = CompanySettings.objects.first()
+
+            prefix = company.receipt_prefix if company else "CWLS"
+
+            self.receipt_number = (
+                f"{prefix}-{self.payment_date.year}-{self.id:06d}"
+            )
+
+            Payment.objects.filter(pk=self.pk).update(
+                receipt_number=self.receipt_number
+            )
     def __str__(self):
-        return f"{self.loan.borrower.first_name} - {self.amount_paid}"
-
-    @property
-    def receipt_number(self):
-        return f"CW-{self.payment_date.strftime('%Y%m%d')}-{self.id:06d}"
-
+        return (
+            f"{self.loan.borrower.first_name} - "
+            f"{self.amount_paid}"
+        )
 class AuditLog(models.Model):
 
     ACTION_TYPES = [

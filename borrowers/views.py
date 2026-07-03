@@ -11,9 +11,29 @@ from decimal import Decimal
 from functools import wraps
 import json
 import openpyxl
+from .pdf_reports import (
+    loan_register_pdf,
+    payment_register_pdf,
+    loan_statement_pdf,
+    borrowers_pdf,
+    defaulters_pdf,
+    weekly_collection_pdf,
+    monthly_financial_report_pdf,
+)
+
+from .excel_reports import (
+    loan_register_excel,
+    payment_register_excel,
+)
 
 from .forms import BorrowerForm
-from .models import Borrower, Loan, RepaymentSchedule, Payment
+from .models import (
+    Borrower,
+    Loan,
+    RepaymentSchedule,
+    Payment,
+    CompanySettings,
+)
 from .utils import log_action
 from .permissions import (
     is_cashier,
@@ -205,7 +225,7 @@ def borrower_profile(request, borrower_id):
     )
 
     total_balance = sum(
-        loan.balance
+        loan.balance()
         for loan in loans
     )
 
@@ -347,12 +367,12 @@ def loan_register(request):
     )
 
     total_paid = sum(
-        loan.total_paid
+        loan.total_paid()
         for loan in loans
     )
 
     outstanding = sum(
-        loan.balance
+        loan.balance()
         for loan in loans
     )
 
@@ -422,8 +442,8 @@ def payment_receipt(request, payment_id):
         "payment": payment,
         "loan": loan,
         "borrower": loan.borrower,
-        "total_paid": loan.total_paid,
-        "balance": loan.balance,
+        "total_paid": loan.total_paid(),
+        "balance": loan.balance(),
     }
 
     return render(
@@ -466,7 +486,7 @@ def dashboard(request):
             total=Sum("amount_paid")
         )["total"] or 0,
         "loan_balance": sum(
-            loan.balance for loan in Loan.objects.all()
+            loan.balance() for loan in Loan.objects.all()
         ),
         "recent_loans": recent_loans,
         "recent_payments": recent_payments,
@@ -502,9 +522,9 @@ def loan_detail(request, loan_id):
         .order_by("-payment_date")
     )
 
-    total_paid = loan.total_paid
+    total_paid = loan.total_paid()
     total_repayment = loan.total_repayment()
-    balance = loan.balance
+    balance = loan.balance()
 
     total_installments = schedules.count()
     paid_installments = schedules.filter(status="paid").count()
@@ -586,508 +606,54 @@ def defaulters_report(request):
     )
 
 @login_required
-def loan_statement_pdf(request, loan_id):
-
-    loan = get_object_or_404(Loan, id=loan_id)
-
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = (
-        f'attachment; filename="loan_{loan.id}.pdf"'
-    )
-
-    p = canvas.Canvas(response)
-
-    p.drawString(200, 800, "LOAN STATEMENT")
-    p.drawString(
-        50,
-        760,
-        f"Borrower: {loan.borrower.first_name} {loan.borrower.last_name}"
-    )
-    p.drawString(
-        50,
-        740,
-        f"Loan Amount: ₦{loan.loan_amount}"
-    )
-    p.drawString(
-        50,
-        720,
-        f"Balance: ₦{loan.balance}"
-    )
-    p.drawString(
-        50,
-        700,
-        f"Duration: {loan.duration_weeks} Weeks"
-    )
-
-    p.showPage()
-    p.save()
-
-    return response
+@role_required(lambda u: is_manager_or_superuser(u))
+def payment_register_pdf_view(request):
+    return payment_register_pdf(request)
 
 @login_required
 @role_required(lambda u: is_manager_or_superuser(u))
-def loan_register_pdf(request):
-
-    loans = (
-        Loan.objects
-        .select_related("borrower")
-        .order_by("-start_date")
-    )
-
-    response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = (
-        'attachment; filename="Loan_Register.pdf"'
-    )
-
-    p = canvas.Canvas(response)
-
-    y = 800
-
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(180, y, "COUNTRYWIDE LENDING & SERVICES")
-
-    y -= 25
-
-    p.setFont("Helvetica", 12)
-    p.drawString(230, y, "Loan Register")
-
-    y -= 35
-
-    p.setFont("Helvetica-Bold", 10)
-
-    p.drawString(30, y, "ID")
-    p.drawString(60, y, "Borrower")
-    p.drawString(210, y, "Loan")
-    p.drawString(300, y, "Paid")
-    p.drawString(390, y, "Balance")
-    p.drawString(500, y, "Status")
-
-    y -= 20
-
-    p.setFont("Helvetica", 9)
-
-    for loan in loans:
-
-        if y <= 50:
-            p.showPage()
-
-            y = 800
-
-            p.setFont("Helvetica-Bold", 10)
-
-            p.drawString(30, y, "ID")
-            p.drawString(60, y, "Borrower")
-            p.drawString(210, y, "Loan")
-            p.drawString(300, y, "Paid")
-            p.drawString(390, y, "Balance")
-            p.drawString(500, y, "Status")
-
-            y -= 20
-
-            p.setFont("Helvetica", 9)
-
-        p.drawString(30, y, str(loan.id))
-
-        p.drawString(
-            60,
-            y,
-            f"{loan.borrower.first_name} {loan.borrower.last_name}"[:25]
-        )
-
-        p.drawString(210, y, f"₦{loan.loan_amount:,.2f}")
-        p.drawString(300, y, f"₦{loan.total_paid:,.2f}")
-        p.drawString(390, y, f"₦{loan.balance:,.2f}")
-        p.drawString(500, y, loan.status.title())
-
-        y -= 18
-
-    p.save()
-
-    return response
+def loan_register_pdf_view(request):
+    return loan_register_pdf(request)
 
 @login_required
 @role_required(lambda u: is_manager_or_superuser(u))
-def payment_register_pdf(request):
-
-    payments = (
-        Payment.objects
-        .select_related("loan", "loan__borrower")
-        .order_by("-payment_date", "-id")
-    )
-
-    response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = (
-        'attachment; filename="Payment_Register.pdf"'
-    )
-
-    p = canvas.Canvas(response)
-
-    width, height = response = (595, 842)
-
-    y = 800
-
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(140, y, "COUNTRYWIDE LENDING & SERVICES")
-
-    y -= 25
-
-    p.setFont("Helvetica", 12)
-    p.drawString(220, y, "PAYMENT REGISTER")
-
-    y -= 30
-
-    p.setFont("Helvetica-Bold", 9)
-
-    p.drawString(20, y, "Receipt")
-    p.drawString(80, y, "Date")
-    p.drawString(150, y, "Borrower")
-    p.drawString(300, y, "Method")
-    p.drawString(380, y, "Amount")
-    p.drawString(470, y, "Loan")
-
-    y -= 18
-
-    p.setFont("Helvetica", 8)
-
-    total = Decimal("0.00")
-
-    for payment in payments:
-
-        if y <= 40:
-
-            p.showPage()
-
-            y = 800
-
-            p.setFont("Helvetica-Bold", 9)
-
-            p.drawString(20, y, "Receipt")
-            p.drawString(80, y, "Date")
-            p.drawString(150, y, "Borrower")
-            p.drawString(300, y, "Method")
-            p.drawString(380, y, "Amount")
-            p.drawString(470, y, "Loan")
-
-            y -= 18
-
-            p.setFont("Helvetica", 8)
-
-        borrower = (
-            payment.loan.borrower.first_name +
-            " " +
-            payment.loan.borrower.last_name
-        )
-
-        p.drawString(20, y, f"#{payment.id}")
-
-        p.drawString(
-            80,
-            y,
-            payment.payment_date.strftime("%d-%m-%Y")
-        )
-
-        p.drawString(
-            150,
-            y,
-            borrower[:24]
-        )
-
-        p.drawString(
-            300,
-            y,
-            payment.get_method_display()
-        )
-
-        p.drawString(
-            380,
-            y,
-            f"₦{payment.amount_paid:,.2f}"
-        )
-
-        p.drawString(
-            470,
-            y,
-            str(payment.loan.id)
-        )
-
-        total += payment.amount_paid
-
-        y -= 16
-
-    y -= 20
-
-    p.setFont("Helvetica-Bold", 11)
-
-    p.drawString(
-        300,
-        y,
-        f"TOTAL COLLECTIONS : ₦{total:,.2f}"
-    )
-
-    p.save()
-
-    return response
-
-@login_required
-@role_required(lambda u: is_manager_or_superuser(u))
-def payment_register_excel(request):
-
-    wb = openpyxl.Workbook()
-
-    ws = wb.active
-
-    ws.title = "Payment Register"
-
-    ws.append([
-        "Receipt No",
-        "Payment Date",
-        "Borrower",
-        "Phone",
-        "Loan ID",
-        "Method",
-        "Amount"
-    ])
-
-    payments = (
-        Payment.objects
-        .select_related("loan", "loan__borrower")
-        .order_by("-payment_date", "-id")
-    )
-
-    total = Decimal("0.00")
-
-    for payment in payments:
-
-        ws.append([
-
-            payment.id,
-
-            payment.payment_date.strftime("%d-%m-%Y"),
-
-            f"{payment.loan.borrower.first_name} {payment.loan.borrower.last_name}",
-
-            payment.loan.borrower.phone,
-
-            payment.loan.id,
-
-            payment.get_method_display(),
-
-            float(payment.amount_paid),
-
-        ])
-
-        total += payment.amount_paid
-
-    ws.append([])
-
-    ws.append([
-        "",
-        "",
-        "",
-        "",
-        "",
-        "TOTAL",
-        float(total)
-    ])
-
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
-    response[
-        "Content-Disposition"
-    ] = 'attachment; filename="Payment_Register.xlsx"'
-
-    wb.save(response)
-
-    return response
-
-@login_required
-@role_required(lambda u: is_manager_or_superuser(u))
-def loan_register_excel(request):
-
-    wb = openpyxl.Workbook()
-
-    ws = wb.active
-
-    ws.title = "Loan Register"
-
-    ws.append([
-        "Loan ID",
-        "Borrower",
-        "Phone",
-        "Loan Amount",
-        "Total Paid",
-        "Outstanding",
-        "Interest %",
-        "Weeks",
-        "Status",
-        "Date"
-    ])
-
-    loans = (
-        Loan.objects
-        .select_related("borrower")
-        .order_by("-start_date")
-    )
-
-    for loan in loans:
-
-        ws.append([
-
-            loan.id,
-
-            f"{loan.borrower.first_name} {loan.borrower.last_name}",
-
-            loan.borrower.phone,
-
-            float(loan.loan_amount),
-
-            float(loan.total_paid),
-
-            float(loan.balance),
-
-            float(loan.interest_rate),
-
-            loan.duration_weeks,
-
-            loan.status,
-
-            loan.start_date.strftime("%d-%m-%Y"),
-
-        ])
-
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
-    response[
-        "Content-Disposition"
-    ] = 'attachment; filename="Loan_Register.xlsx"'
-
-    wb.save(response)
-
-    return response
+def loan_statement_pdf_view(request):
+    return loan_statement_pdf(request)
 
 
 @login_required
 @role_required(lambda u: is_manager_or_superuser(u))
-def payment_register(request):
+def borrowers_pdf_view(request):
+    return borrowers_pdf(request)
 
-    payments = (
-        Payment.objects
-        .select_related("loan", "loan__borrower")
-        .order_by("-payment_date", "-id")
-    )
-
-    search = request.GET.get("search")
-    method = request.GET.get("method")
-    date_from = request.GET.get("date_from")
-    date_to = request.GET.get("date_to")
-
-    if search:
-        payments = payments.filter(
-            Q(loan__borrower__first_name__icontains=search) |
-            Q(loan__borrower__last_name__icontains=search) |
-            Q(loan__borrower__phone__icontains=search) |
-            Q(loan__id__icontains=search) |
-            Q(id__icontains=search)
-        )
-
-    if method:
-        payments = payments.filter(method=method)
-
-    if date_from:
-        payments = payments.filter(payment_date__gte=date_from)
-
-    if date_to:
-        payments = payments.filter(payment_date__lte=date_to)
-
-    total_collections = (
-        payments.aggregate(
-            total=Sum("amount_paid")
-        )["total"] or Decimal("0.00")
-    )
-
-    cash_total = (
-        payments.filter(method="cash")
-        .aggregate(total=Sum("amount_paid"))["total"]
-        or Decimal("0.00")
-    )
-
-    transfer_total = (
-        payments.filter(method="transfer")
-        .aggregate(total=Sum("amount_paid"))["total"]
-        or Decimal("0.00")
-    )
-
-    mobile_total = (
-        payments.filter(method="mobile")
-        .aggregate(total=Sum("amount_paid"))["total"]
-        or Decimal("0.00")
-    )
-
-    context = {
-
-        "payments": payments,
-
-        "total_collections": total_collections,
-
-        "cash_total": cash_total,
-
-        "transfer_total": transfer_total,
-
-        "mobile_total": mobile_total,
-
-        "total_transactions": payments.count(),
-
-    }
-
-    return render(
-        request,
-        "borrowers/payment_register.html",
-        context
-    )
+@login_required
+@role_required(lambda u: is_manager_or_superuser(u))
+def defaulters_pdf_view(request):
+    return defaulters_pdf(request)
 
 
 @login_required
-@role_required(
-    lambda u:
-    is_manager_or_superuser(u)
-    or is_auditor(u)
-)
-def borrowers_pdf(request):
+@role_required(lambda u: is_manager_or_superuser(u))
+def weekly_collection_pdf_view(request):
+    return weekly_collection_pdf(request)
 
-    borrowers = Borrower.objects.all()
 
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = (
-        'attachment; filename="borrowers_report.pdf"'
-    )
+@login_required
+@role_required(lambda u: is_manager_or_superuser(u))
+def monthly_financial_report_pdf_view(request):
+    return monthly_financial_report_pdf(request)
 
-    p = canvas.Canvas(response)
 
-    p.drawString(200, 800, "BORROWERS REPORT")
+@login_required
+@role_required(lambda u: is_manager_or_superuser(u))
+def loan_register_excel_view(request):
+    return loan_register_excel(request)
 
-    y = 760
 
-    for borrower in borrowers:
-
-        p.drawString(
-            50,
-            y,
-            f"{borrower.first_name} {borrower.last_name}"
-        )
-
-        y -= 20
-
-        if y < 50:
-            p.showPage()
-            y = 800
-
-    p.save()
-
-    return response
+@login_required
+@role_required(lambda u: is_manager_or_superuser(u))
+def payment_register_excel_view(request):
+    return payment_register_excel(request)
 
 
 @login_required
@@ -1170,7 +736,8 @@ def export_loans_pdf(request):
     # Header
     # -----------------------------
     p.setFont("Helvetica-Bold", 16)
-    p.drawString(40, height - 40, "COUNTRYWIDE LENDING & SERVICES")
+    company = CompanySettings.objects.first()
+    p.drawString(40, height - 40, company.company_name)
 
     p.setFont("Helvetica", 11)
     p.drawString(40, height - 60, "Loan Register Report")
@@ -1235,7 +802,7 @@ def export_loans_pdf(request):
             f"{loan.borrower.last_name}"
         )
 
-        balance = loan.balance
+        balance = loan.balance()
 
         total_portfolio += loan.loan_amount
         total_balance += balance
@@ -1333,31 +900,67 @@ def export_payments_pdf(request):
 
     width, height = 595, 842
 
-    # ---------------------------------------
+   # ---------------------------------------
     # COMPANY HEADER
     # ---------------------------------------
+
+    company = CompanySettings.objects.first()
+
+    company_name = (
+        company.company_name
+        if company
+        else "COUNTRYWIDE LENDING & SERVICES"
+    )
+
+    company_phone = company.phone if company else ""
+    company_email = company.email if company else ""
+    company_address = company.address if company else ""
 
     p.setFont("Helvetica-Bold", 16)
     p.drawString(
         40,
         height - 40,
-        "COUNTRYWIDE LENDING & SERVICES"
+        company_name
     )
 
-    p.setFont("Helvetica", 11)
-    p.drawString(
-        40,
-        height - 60,
-        "Payment Register"
+    p.setFont("Helvetica", 9)
+
+    if company_address:
+        p.drawString(
+            40,
+            height - 58,
+            company_address
+        )
+
+    if company_phone:
+        p.drawString(
+            40,
+            height - 72,
+            f"Phone: {company_phone}"
+        )
+
+    if company_email:
+        p.drawString(
+            40,
+            height - 86,
+            f"Email: {company_email}"
+        )
+
+    p.setFont("Helvetica-Bold", 12)
+    p.drawCentredString(
+        width / 2,
+        height - 105,
+        "PAYMENT REGISTER"
     )
 
+    p.setFont("Helvetica", 9)
     p.drawRightString(
         width - 40,
-        height - 60,
+        height - 105,
         date.today().strftime("%d %B %Y")
     )
 
-    y = height - 95
+    y = height - 130
 
     # ---------------------------------------
     # TABLE HEADER
@@ -1366,11 +969,11 @@ def export_payments_pdf(request):
     p.setFont("Helvetica-Bold", 8)
 
     p.drawString(40, y, "Receipt")
-    p.drawString(95, y, "Date")
-    p.drawString(170, y, "Borrower")
-    p.drawString(315, y, "Method")
-    p.drawString(390, y, "Loan ID")
-    p.drawString(470, y, "Amount")
+    p.drawString(115, y, "Date")
+    p.drawString(185, y, "Borrower")
+    p.drawString(335, y, "Method")
+    p.drawString(415, y, "Loan")
+    p.drawString(485, y, "Amount")
 
     y -= 18
 
@@ -1379,7 +982,6 @@ def export_payments_pdf(request):
     p.setFont("Helvetica", 8)
 
     total_payments = Decimal("0.00")
-
     # ---------------------------------------
     # PAYMENT RECORDS
     # ---------------------------------------
@@ -1520,8 +1122,8 @@ def export_loans_excel(request):
             float(loan.interest_rate),
             loan.duration_weeks,
             float(loan.total_repayment()),
-            float(loan.total_paid),
-            float(loan.balance),
+            float(loan.total_paid()),
+            float(loan.balance()),
             loan.status.title(),
             loan.start_date.strftime("%d-%m-%Y"),
         ])
@@ -1626,7 +1228,7 @@ def all_loans_report(request):
     )["total"] or Decimal("0.00")
 
     total_balance = sum(
-        loan.balance
+        loan.balance()
         for loan in loans
     )
 

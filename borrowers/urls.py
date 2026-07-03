@@ -48,7 +48,7 @@ urlpatterns = [
 
     path(
         'loans/excel/',
-        views.loan_register_excel,
+        views.loan_register_excel_view,
         name='loan_register_excel'
     ),
     path(
@@ -58,29 +58,32 @@ urlpatterns = [
     ),
 
     path(
-        'loan/<int:loan_id>/pdf/',
-        views.loan_statement_pdf,
-        name='loan_pdf'
+        "loan-register/pdf/",
+        views.loan_register_pdf_view,
+        name="loan_register_pdf",
     ),
+
     path(
-        'borrowers/pdf/',
-        views.borrowers_pdf,
-        name='borrowers_pdf'
-    ),
-    path(
-        "payments/register/",
-        views.payment_register,
-        name="payment_register",
-    ),
-    path(
-        "payments/register/pdf/",
-        views.payment_register_pdf,
+        "payment-register/pdf/",
+        views.payment_register_pdf_view,
         name="payment_register_pdf",
     ),
 
     path(
+        "borrowers/pdf/",
+        views.borrowers_pdf_view,
+        name="borrowers_pdf",
+    ),
+
+    path(
+        "loan/<int:loan_id>/statement/",
+        views.loan_statement_pdf_view,
+        name="loan_statement_pdf",
+    ),
+
+    path(
         "payments/register/excel/",
-        views.payment_register_excel,
+        views.payment_register_excel_view,
         name="payment_register_excel",
     ),
 
@@ -105,9 +108,9 @@ urlpatterns = [
         name='export_defaulters_excel'
     ),
     path(
-        'defaulters/export/pdf/',
-        views.export_defaulters_pdf,
-        name='export_defaulters_pdf'
+        "defaulters/pdf/",
+        views.defaulters_pdf_view,
+        name="export_defaulters_pdf",
     ),
     path(
     "reports/loans/",
@@ -143,4 +146,16 @@ urlpatterns = [
         views.export_payments_excel,
         name="export_payments_excel",
     ),
+    path(
+        "reports/weekly/",
+        views.weekly_collection_pdf_view,
+        name="weekly_collection_pdf",
+    ),
+
+    path(
+        "reports/monthly/",
+        views.monthly_financial_report_pdf_view,
+        name="monthly_financial_report_pdf",
+    ),
+
 ]

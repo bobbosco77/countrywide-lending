@@ -861,8 +861,9 @@
 
     <div class="mob-logo">
         <div class="logo-icon">
-            <img src="{% static 'countrywide/images/CW_Logo.jpg' %}" alt="Logo">
-        </div>
+            {% if company.logo %}
+                <img src="{{ company.logo.url }}" height="50">
+            {% endif %}
         <span style="color:white;font-weight:700;">CountryWideMoney</span>
     </div>
 </div>
