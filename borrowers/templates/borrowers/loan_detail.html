@@ -44,7 +44,7 @@
 
                 <div class="col-md-4">
                     <small class="text-muted d-block">Loan Amount</small>
-                    <h5>₦{{ loan.loan_amount }}</h5>
+                    <h5>{{ company.currency_symbol }}{{ loan.loan_amount }}</h5>
                 </div>
 
                 <div class="col-md-4">
@@ -59,17 +59,17 @@
 
                 <div class="col-md-4">
                     <small class="text-muted d-block">Total Repayment</small>
-                    <h5 class="text-primary">₦{{ total_repayment }}</h5>
+                    <h5 class="text-primary">{{ company.currency_symbol }}{{ total_repayment }}</h5>
                 </div>
 
                 <div class="col-md-4">
                     <small class="text-muted d-block">Total Paid</small>
-                    <h5 class="text-success">₦{{ total_paid }}</h5>
+                    <h5 class="text-success">{{ company.currency_symbol }}{{ total_paid }}</h5>
                 </div>
 
                 <div class="col-md-4">
                     <small class="text-muted d-block">Outstanding Balance</small>
-                    <h5 class="text-danger">₦{{ balance }}</h5>
+                    <h5 class="text-danger">{{ company.currency_symbol }}{{ balance }}</h5>
                 </div>
 
             </div>
@@ -100,17 +100,17 @@
 
                 <div class="col-md-4">
                     <small class="text-muted">Total Repayment</small>
-                    <div class="fw-bold text-primary">₦{{ total_repayment }}</div>
+                    <div class="fw-bold text-primary">{{ company.currency_symbol }}{{ total_repayment }}</div>
                 </div>
 
                 <div class="col-md-4">
                     <small class="text-muted">Amount Paid</small>
-                    <div class="fw-bold text-success">₦{{ total_paid }}</div>
+                    <div class="fw-bold text-success">{{ company.currency_symbol }}{{ total_paid }}</div>
                 </div>
 
                 <div class="col-md-4">
                     <small class="text-muted">Balance Remaining</small>
-                    <div class="fw-bold text-danger">₦{{ balance }}</div>
+                    <div class="fw-bold text-danger">{{ company.currency_symbol }}{{ balance }}</div>
                 </div>
 
             </div>
@@ -146,9 +146,9 @@
                     <tr>
                         <td>Week {{ schedule.installment_number }}</td>
                         <td>{{ schedule.due_date }}</td>
-                        <td>₦{{ schedule.amount_due }}</td>
-                        <td class="text-success">₦{{ schedule.amount_paid }}</td>
-                        <td class="text-danger">₦{{ schedule.balance }}</td>
+                        <td>{{ company.currency_symbol }}{{ schedule.amount_due }}</td>
+                        <td class="text-success">{{ company.currency_symbol }}{{ schedule.amount_paid }}</td>
+                        <td class="text-danger">{{ company.currency_symbol }}{{ schedule.balance }}</td>
                         <td>
                             {% if schedule.status == "paid" %}
                                 <span class="badge bg-success">Paid</span>
@@ -193,7 +193,7 @@
                         <td>{{ payment.payment_date }}</td>
                         <td>{{ payment.get_method_display }}</td>
                         <td class="text-success">
-                            <strong>₦{{ payment.amount_paid }}</strong>
+                            <strong>{{ company.currency_symbol }}{{ payment.amount_paid }}</strong>
                         </td>
                     </tr>
                     {% empty %}

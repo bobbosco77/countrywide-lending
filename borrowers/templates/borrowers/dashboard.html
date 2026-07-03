@@ -119,7 +119,7 @@
                     </div>
 
                     <div class="stat-value">
-                        ₦{{ total_portfolio }}
+                        {{ company.currency_symbol }}{{ total_portfolio }}
                     </div>
 
                 </div>
@@ -146,7 +146,7 @@
                     </div>
 
                     <div class="stat-value">
-                        ₦{{ loan_balance }}
+                        {{ company.currency_symbol }}{{ loan_balance }}
                     </div>
 
                 </div>
@@ -178,7 +178,7 @@
                     </div>
 
                     <div class="stat-value">
-                        ₦{{ today_collections }}
+                        {{ company.currency_symbol }}{{ today_collections }}
                     </div>
 
                 </div>
@@ -392,7 +392,7 @@
 
                                 <td>
 
-                                    ₦{{ loan.loan_amount|floatformat:2 }}
+                                    {{ company.currency_symbol }}{{ loan.loan_amount|floatformat:2 }}
 
                                 </td>
 
@@ -534,7 +534,7 @@
 
                                     <strong class="text-success">
 
-                                        ₦{{ payment.amount_paid|floatformat:2 }}
+                                        {{ company.currency_symbol }}{{ payment.amount_paid|floatformat:2 }}
 
                                     </strong>
 

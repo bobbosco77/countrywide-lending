@@ -307,7 +307,7 @@
                     <table class="info-table">
                         <tr>
                             <td>Amount</td>
-                            <td><strong>₦{{ payment.amount_paid }}</strong></td>
+                            <td><strong>{{ company.currency_symbol }}{{ payment.amount_paid }}</strong></td>
                         </tr>
                         <tr>
                             <td>Method</td>
@@ -330,7 +330,7 @@
             <!-- NOTICE -->
             <div class="notice">
                 Received from <strong>{{ payment.loan.borrower.first_name }} {{ payment.loan.borrower.last_name }}</strong>
-                the sum of <strong>₦{{ payment.amount_paid }}</strong> for Loan <strong>#{{ payment.loan.id }}</strong>.
+                the sum of <strong>{{ company.currency_symbol }}{{ payment.amount_paid }}</strong> for Loan <strong>#{{ payment.loan.id }}</strong>.
             </div>
 
             <!-- SUMMARY -->
@@ -339,28 +339,28 @@
                 <div class="col-6 col-md-3">
                     <div class="summary-card">
                         <small>Paid</small>
-                        <h4 class="text-success">₦{{ payment.amount_paid }}</h4>
+                        <h4 class="text-success">{{ company.currency_symbol }}{{ payment.amount_paid }}</h4>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-3">
                     <div class="summary-card">
                         <small>Total Paid</small>
-                        <h4 class="text-primary">₦{{ payment.loan.total_paid }}</h4>
+                        <h4 class="text-primary">{{ company.currency_symbol }}{{ payment.loan.total_paid }}</h4>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-3">
                     <div class="summary-card">
                         <small>Balance</small>
-                        <h4 class="text-danger">₦{{ payment.loan.balance }}</h4>
+                        <h4 class="text-danger">{{ company.currency_symbol }}{{ payment.loan.balance }}</h4>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-3">
                     <div class="summary-card">
                         <small>Weekly</small>
-                        <h4 style="color:#0b5d3b;">₦{{ payment.loan.weekly_payment }}</h4>
+                        <h4 style="color:#0b5d3b;">{{ company.currency_symbol }}{{ payment.loan.weekly_payment }}</h4>
                     </div>
                 </div>
 
@@ -372,11 +372,11 @@
             <table class="loan-table">
                 <tr>
                     <th>Loan Amount</th>
-                    <td>₦{{ payment.loan.loan_amount }}</td>
+                    <td>{{ company.currency_symbol }}{{ payment.loan.loan_amount }}</td>
                 </tr>
                 <tr>
                     <th>Repayment</th>
-                    <td>₦{{ payment.loan.total_repayment }}</td>
+                    <td>{{ company.currency_symbol }}{{ payment.loan.total_repayment }}</td>
                 </tr>
                 <tr>
                     <th>Interest</th>
@@ -408,8 +408,8 @@
                     {% for schedule in payment.loan.schedules.all|slice:":4" %}
                     <tr>
                         <td>{{ schedule.installment_number }}</td>
-                        <td>₦{{ schedule.amount_due }}</td>
-                        <td>₦{{ schedule.amount_paid }}</td>
+                        <td>{{ company.currency_symbol }}{{ schedule.amount_due }}</td>
+                        <td>{{ company.currency_symbol }}{{ schedule.amount_paid }}</td>
                         <td>
                             {% if schedule.status == "paid" %}
                                 <span class="badge bg-success">Paid</span>

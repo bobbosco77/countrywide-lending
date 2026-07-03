@@ -90,7 +90,7 @@
 
                         <td>{{ item.loan.borrower.phone }}</td>
 
-                        <td><b>₦{{ item.amount_due }}</b></td>
+                        <td><b>{{ company.currency_symbol }}{{ item.amount_due }}</b></td>
 
                         <td>{{ item.due_date|date:"d M Y" }}</td>
 

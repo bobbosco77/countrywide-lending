@@ -231,7 +231,7 @@ def loan_statement_pdf(request, loan_id):
     pdf.drawString(
         50,
         y,
-        f"Loan Amount : ₦{loan.loan_amount:,.2f}"
+        f"Loan Amount : {{ company.currency_symbol }}{loan.loan_amount:,.2f}"
     )
 
     y -= 20
@@ -282,7 +282,7 @@ def loan_statement_pdf(request, loan_id):
     pdf.drawString(
         50,
         y,
-        f"Total Repayment : ₦{loan.total_repayment():,.2f}"
+        f"Total Repayment : {{ company.currency_symbol }}{loan.total_repayment():,.2f}"
     )
 
     y -= 20
@@ -290,7 +290,7 @@ def loan_statement_pdf(request, loan_id):
     pdf.drawString(
         50,
         y,
-        f"Amount Paid : ₦{loan.total_paid():,.2f}"
+        f"Amount Paid : {{ company.currency_symbol }}{loan.total_paid():,.2f}"
     )
 
     y -= 20
@@ -298,7 +298,7 @@ def loan_statement_pdf(request, loan_id):
     pdf.drawString(
         50,
         y,
-        f"Outstanding Balance : ₦{loan.balance():,.2f}"
+        f"Outstanding Balance : {{ company.currency_symbol }}{loan.balance():,.2f}"
     )
 
     y -= 40
@@ -363,7 +363,7 @@ def loan_statement_pdf(request, loan_id):
             pdf.drawRightString(
                 540,
                 y,
-                f"₦{payment.amount_paid:,.2f}"
+                f"{{ company.currency_symbol }}{payment.amount_paid:,.2f}"
             )
 
             y -= 18
@@ -468,19 +468,19 @@ def loan_register_pdf(request):
         pdf.drawRightString(
             285,
             y,
-            f"₦{loan.loan_amount:,.2f}"
+            f"{{ company.currency_symbol }}{loan.loan_amount:,.2f}"
         )
 
         pdf.drawRightString(
             375,
             y,
-            f"₦{loan.total_paid():,.2f}"
+            f"{{ company.currency_symbol }}{loan.total_paid():,.2f}"
         )
 
         pdf.drawRightString(
             470,
             y,
-            f"₦{loan.balance():,.2f}"
+            f"{{ company.currency_symbol }}{loan.balance():,.2f}"
         )
 
         pdf.drawString(
@@ -515,7 +515,7 @@ def loan_register_pdf(request):
     pdf.drawString(
         40,
         y,
-        f"Loan Portfolio : ₦{total_loans:,.2f}"
+        f"Loan Portfolio : {{ company.currency_symbol }}{total_loans:,.2f}"
     )
 
     y -= 18
@@ -523,7 +523,7 @@ def loan_register_pdf(request):
     pdf.drawString(
         40,
         y,
-        f"Total Recovered : ₦{total_paid:,.2f}"
+        f"Total Recovered : {{ company.currency_symbol }}{total_paid:,.2f}"
     )
 
     y -= 18
@@ -531,7 +531,7 @@ def loan_register_pdf(request):
     pdf.drawString(
         40,
         y,
-        f"Outstanding Balance : ₦{total_balance:,.2f}"
+        f"Outstanding Balance : {{ company.currency_symbol }}{total_balance:,.2f}"
     )
 
     draw_footer(pdf, request)
@@ -646,7 +646,7 @@ def payment_register_pdf(request):
         pdf.drawRightString(
             555,
             y,
-            f"₦{payment.amount_paid:,.2f}"
+            f"{{ company.currency_symbol }}{payment.amount_paid:,.2f}"
         )
 
         total_collections += payment.amount_paid
@@ -677,7 +677,7 @@ def payment_register_pdf(request):
     pdf.drawString(
         40,
         y,
-        f"Total Collections : ₦{total_collections:,.2f}"
+        f"Total Collections : {{ company.currency_symbol }}{total_collections:,.2f}"
     )
 
     draw_footer(pdf, request)
@@ -886,19 +886,19 @@ def defaulters_pdf(request):
         pdf.drawRightString(
             340,
             y,
-            f"₦{loan.loan_amount:,.2f}"
+            f"{{ company.currency_symbol }}{loan.loan_amount:,.2f}"
         )
 
         pdf.drawRightString(
             420,
             y,
-            f"₦{loan.total_paid():,.2f}"
+            f"{{ company.currency_symbol }}{loan.total_paid():,.2f}"
         )
 
         pdf.drawRightString(
             510,
             y,
-            f"₦{balance:,.2f}"
+            f"{{ company.currency_symbol }}{balance:,.2f}"
         )
 
         total_defaulters += 1
@@ -925,7 +925,7 @@ def defaulters_pdf(request):
     pdf.drawString(
         40,
         y,
-        f"TOTAL OUTSTANDING : ₦{total_outstanding:,.2f}"
+        f"TOTAL OUTSTANDING : {{ company.currency_symbol }}{total_outstanding:,.2f}"
     )
 
     draw_footer(pdf, request)
@@ -997,7 +997,7 @@ def weekly_collection_pdf(request):
         pdf.drawRightString(
             540,
             y,
-            f"₦{amount:,.2f}"
+            f"{{ company.currency_symbol }}{amount:,.2f}"
         )
 
         total += amount
@@ -1021,7 +1021,7 @@ def weekly_collection_pdf(request):
     pdf.drawRightString(
         540,
         y,
-        f"₦{total:,.2f}"
+        f"{{ company.currency_symbol }}{total:,.2f}"
     )
 
     draw_footer(pdf, request)
@@ -1097,11 +1097,11 @@ def monthly_financial_report_pdf(request):
 
     rows = [
 
-        ("Loans Disbursed", f"₦{loans_disbursed:,.2f}"),
+        ("Loans Disbursed", f"{{ company.currency_symbol }}{loans_disbursed:,.2f}"),
 
-        ("Collections Received", f"₦{collections:,.2f}"),
+        ("Collections Received", f"{{ company.currency_symbol }}{collections:,.2f}"),
 
-        ("Outstanding Portfolio", f"₦{outstanding:,.2f}"),
+        ("Outstanding Portfolio", f"{{ company.currency_symbol }}{outstanding:,.2f}"),
 
         ("Active Loans", str(active)),
 

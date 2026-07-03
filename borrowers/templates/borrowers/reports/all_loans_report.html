@@ -45,14 +45,14 @@
                 <div class="col-md-3">
                     <div class="alert alert-success mb-0">
                         <strong>Portfolio</strong><br>
-                        ₦{{ total_portfolio }}
+                        {{ company.currency_symbol }}{{ total_portfolio }}
                     </div>
                 </div>
 
                 <div class="col-md-3">
                     <div class="alert alert-danger mb-0">
                         <strong>Outstanding</strong><br>
-                        ₦{{ total_balance }}
+                        {{ company.currency_symbol }}{{ total_balance }}
                     </div>
                 </div>
 
@@ -148,11 +148,11 @@
                         <td>{{ forloop.counter }}</td>
                         <td>{{ loan.borrower.first_name }} {{ loan.borrower.last_name }}</td>
                         <td>{{ loan.borrower.phone }}</td>
-                        <td>₦{{ loan.loan_amount }}</td>
+                        <td>{{ company.currency_symbol }}{{ loan.loan_amount }}</td>
                         <td>{{ loan.interest_rate }}%</td>
                         <td>{{ loan.duration_weeks }} Weeks</td>
-                        <td>₦{{ loan.total_repayment }}</td>
-                        <td>₦{{ loan.balance }}</td>
+                        <td>{{ company.currency_symbol }}{{ loan.total_repayment }}</td>
+                        <td>{{ company.currency_symbol }}{{ loan.balance }}</td>
                         <td>
                             {% if loan.status == "active" %}
                                 <span class="badge bg-success">Active</span>
@@ -181,7 +181,7 @@
                 <div class="stat-icon green"><i class="fa-solid fa-briefcase"></i></div>
                 <div>
                     <div class="stat-label">Total Portfolio</div>
-                    <div class="stat-value" style="font-size:22px;">₦{{ total_portfolio }}</div>
+                    <div class="stat-value" style="font-size:22px;">{{ company.currency_symbol }}{{ total_portfolio }}</div>
                 </div>
             </div>
         </div>
@@ -190,7 +190,7 @@
                 <div class="stat-icon red"><i class="fa-solid fa-scale-balanced"></i></div>
                 <div>
                     <div class="stat-label">Total Outstanding Balance</div>
-                    <div class="stat-value" style="font-size:22px;">₦{{ total_balance }}</div>
+                    <div class="stat-value" style="font-size:22px;">{{ company.currency_symbol }}{{ total_balance }}</div>
                 </div>
             </div>
         </div>
