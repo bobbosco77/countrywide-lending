@@ -120,7 +120,7 @@ class Loan(models.Model):
         """
         Outstanding loan balance.
         """
-        return self.total_repayment() - self.total_paid()
+        return self.total_repayment() - self.total_paid
 
     def generate_repayment_schedule(self):
 
