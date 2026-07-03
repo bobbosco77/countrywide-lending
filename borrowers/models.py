@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from decimal import Decimal
 from datetime import date, timedelta
@@ -195,6 +196,40 @@ class RepaymentSchedule(models.Model):
 
     def __str__(self):
         return f"Loan {self.loan.id} - Week {self.installment_number}"    
+    
+class CompanySettings(models.Model):
+    company_name = models.CharField(max_length=200)
+    logo = models.ImageField(upload_to="company/", blank=True, null=True)
+
+    address = models.TextField(blank=True)
+    phone = models.CharField(max_length=30, blank=True)
+    email = models.EmailField(blank=True)
+    website = models.URLField(blank=True)
+
+    currency_symbol = models.CharField(
+        max_length=10,
+        default="₦"
+    )
+
+    receipt_prefix = models.CharField(
+        max_length=20,
+        default="CWLS"
+    )
+
+    report_footer = models.TextField(
+        default="Thank you for choosing CountryWide Lending & Services."
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Company Settings"
+        verbose_name_plural = "Company Settings"
+
+    def __str__(self):
+        return self.company_name
+    
+
 class Payment(models.Model):
 
     loan = models.ForeignKey(
@@ -205,8 +240,8 @@ class Payment(models.Model):
 
     receipt_number = models.CharField(
         max_length=50,
-        null=True,
-        blank=True
+        blank=True,
+        null=True
     )
 
     amount_paid = models.DecimalField(
@@ -240,20 +275,24 @@ class Payment(models.Model):
 
             company = CompanySettings.objects.first()
 
-            prefix = company.receipt_prefix if company else "CWLS"
+            prefix = (
+                company.receipt_prefix
+                if company and company.receipt_prefix
+                else "CWLS"
+            )
 
             self.receipt_number = (
-                f"{prefix}-{self.payment_date.year}-{self.id:06d}"
+                f"{prefix}-{self.payment_date:%Y%m%d}-{self.pk:06d}"
             )
 
-            Payment.objects.filter(pk=self.pk).update(
-                receipt_number=self.receipt_number
-            )
+            super().save(update_fields=["receipt_number"])
+
     def __str__(self):
         return (
             f"{self.loan.borrower.first_name} - "
             f"{self.amount_paid}"
         )
+    
 class AuditLog(models.Model):
 
     ACTION_TYPES = [
@@ -278,38 +317,3 @@ class AuditLog(models.Model):
     def __str__(self):
         return f"{self.user} - {self.action} - {self.model_name}"
     
-
-from django.db import models
-
-
-class CompanySettings(models.Model):
-    company_name = models.CharField(max_length=200)
-    logo = models.ImageField(upload_to="company/", blank=True, null=True)
-
-    address = models.TextField(blank=True)
-    phone = models.CharField(max_length=30, blank=True)
-    email = models.EmailField(blank=True)
-    website = models.URLField(blank=True)
-
-    currency_symbol = models.CharField(
-        max_length=10,
-        default="₦"
-    )
-
-    receipt_prefix = models.CharField(
-        max_length=20,
-        default="CWLS"
-    )
-
-    report_footer = models.TextField(
-        default="Thank you for choosing CountryWide Lending & Services."
-    )
-
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = "Company Settings"
-        verbose_name_plural = "Company Settings"
-
-    def __str__(self):
-        return self.company_name
