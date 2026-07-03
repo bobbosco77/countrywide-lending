@@ -152,5 +152,9 @@ urlpatterns = [
         views.monthly_financial_report_pdf_view,
         name="monthly_financial_report_pdf",
     ),
-
+    path(
+        "reports/",
+        views.report_center,
+        name="report_center",
+    ),
 ]

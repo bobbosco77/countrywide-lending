@@ -1,0 +1,163 @@
+{% extends "borrowers/base.html" %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="topbar mb-4">
+        <div>
+            <h3 class="fw-bold">Report Center</h3>
+            <small class="text-muted">
+                Print and export every report from one location.
+            </small>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- All Loans -->
+        <div class="col-lg-4">
+            <div class="card shadow h-100">
+                <div class="card-body text-center">
+
+                    <i class="fa-solid fa-file-invoice-dollar fa-3x text-success mb-3"></i>
+
+                    <h5>All Loans Report</h5>
+
+                    <p class="text-muted">
+                        View every loan issued by the company.
+                    </p>
+
+                    <a href="{% url 'all_loans_report' %}" class="btn btn-primary btn-sm">
+                        View
+                    </a>
+
+                    <a href="{% url 'export_loans_pdf' %}" class="btn btn-danger btn-sm">
+                        PDF
+                    </a>
+
+                    <a href="{% url 'export_loans_excel' %}" class="btn btn-success btn-sm">
+                        Excel
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments -->
+
+        <div class="col-lg-4">
+
+            <div class="card shadow h-100">
+
+                <div class="card-body text-center">
+
+                    <i class="fa-solid fa-money-bill-wave fa-3x text-warning mb-3"></i>
+
+                    <h5>Payment Report</h5>
+
+                    <p class="text-muted">
+                        View every payment received.
+                    </p>
+
+                    <a href="{% url 'all_payments_report' %}" class="btn btn-primary btn-sm">
+                        View
+                    </a>
+
+                    <a href="{% url 'export_payments_pdf' %}" class="btn btn-danger btn-sm">
+                        PDF
+                    </a>
+
+                    <a href="{% url 'export_payments_excel' %}" class="btn btn-success btn-sm">
+                        Excel
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Defaulters -->
+
+        <div class="col-lg-4">
+
+            <div class="card shadow h-100">
+
+                <div class="card-body text-center">
+
+                    <i class="fa-solid fa-triangle-exclamation fa-3x text-danger mb-3"></i>
+
+                    <h5>Defaulters</h5>
+
+                    <p class="text-muted">
+                        Customers with overdue loans.
+                    </p>
+
+                    <a href="{% url 'defaulters_report' %}" class="btn btn-primary btn-sm">
+                        View
+                    </a>
+
+                    <a href="{% url 'export_defaulters_pdf' %}" class="btn btn-danger btn-sm">
+                        PDF
+                    </a>
+
+                    <a href="{% url 'export_defaulters_excel' %}" class="btn btn-success btn-sm">
+                        Excel
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Weekly -->
+
+        <div class="col-lg-6">
+
+            <div class="card shadow h-100">
+
+                <div class="card-body text-center">
+
+                    <i class="fa-solid fa-calendar-week fa-3x text-primary mb-3"></i>
+
+                    <h5>Weekly Collection Report</h5>
+
+                    <a href="{% url 'weekly_collection_pdf' %}" class="btn btn-danger">
+                        Generate PDF
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Monthly -->
+
+        <div class="col-lg-6">
+
+            <div class="card shadow h-100">
+
+                <div class="card-body text-center">
+
+                    <i class="fa-solid fa-chart-line fa-3x text-success mb-3"></i>
+
+                    <h5>Monthly Financial Report</h5>
+
+                    <a href="{% url 'monthly_financial_report_pdf' %}" class="btn btn-danger">
+                        Generate PDF
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -83,11 +83,12 @@
             <li class="section">Reports</li>
 
             <li>
-                <a href="{% url 'defaulters_report' %}">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    Defaulters Report
+                <a href="{% url 'report_center' %}">
+                    <i class="fa-solid fa-chart-column"></i>
+                    <span>Report Center</span>
                 </a>
             </li>
+            
             {% endif %}
 
             {% if request.user|is_manager %}

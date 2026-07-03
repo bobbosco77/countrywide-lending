@@ -475,30 +475,59 @@ def dashboard(request):
         .order_by("-id")[:5]
     )
 
+    total_portfolio = Loan.objects.aggregate(
+        total=Sum("loan_amount")
+    )["total"] or 0
+
+    total_collections = Payment.objects.aggregate(
+        total=Sum("amount_paid")
+    )["total"] or 0
+
+    outstanding_balance = sum(
+        loan.balance for loan in Loan.objects.all()
+    )
+
+    today_collections = Payment.objects.filter(
+        payment_date=date.today()
+    ).aggregate(
+        total=Sum("amount_paid")
+    )["total"] or 0
+
     context = {
+
         "total_borrowers": Borrower.objects.count(),
-        "active_loans": Loan.objects.filter(status="active").count(),
-        "closed_loans": Loan.objects.filter(status="closed").count(),
-        "pending_loans": Loan.objects.filter(status="pending").count(),
-        "total_loan_portfolio": Loan.objects.aggregate(
-            total=Sum("loan_amount")
-        )["total"] or 0,
-        "total_repayments": Payment.objects.aggregate(
-            total=Sum("amount_paid")
-        )["total"] or 0,
-        "loan_balance": sum(
-            loan.balance for loan in Loan.objects.all()
-        ),
+
+        "active_loans": Loan.objects.filter(
+            status="active"
+        ).count(),
+
+        "closed_loans": Loan.objects.filter(
+            status="closed"
+        ).count(),
+
+        "pending_loans": Loan.objects.filter(
+            status="pending"
+        ).count(),
+
+        "total_portfolio": total_portfolio,
+
+        "total_repayments": total_collections,
+
+        "loan_balance": outstanding_balance,
+
+        "today_collections": today_collections,
+
         "recent_loans": recent_loans,
+
         "recent_payments": recent_payments,
+
     }
 
     return render(
         request,
         "borrowers/dashboard.html",
-        context
+        context,
     )
-
 # ==================================================
 # LOGIN / AUDIT / REPORTS
 # ==================================================
@@ -1296,4 +1325,12 @@ def all_payments_report(request):
         request,
         "borrowers/reports/all_payments_report.html",
         context
+    )
+
+@login_required
+@role_required(is_manager_or_superuser)
+def report_center(request):
+    return render(
+        request,
+        "borrowers/report_center.html"
     )

@@ -4,195 +4,440 @@
 
 <div class="container-fluid px-0">
 
-    <!-- Top Bar -->
-    <div class="topbar">
+    <!-- TOP BAR -->
+    <div class="topbar mb-4">
+
         <div>
-            <div class="page-title">Dashboard</div>
-            <div style="font-size:13px; color:var(--text-muted); margin-top:2px;">
-                Welcome back — CountryWide Lending and Services
+            <div class="page-title">
+                Dashboard
+            </div>
+
+            <div class="text-muted small">
+                Welcome back to {{ company.company_name }}
             </div>
         </div>
+
         <div class="d-flex gap-2 flex-wrap">
-            <a href="{% url 'defaulters_report' %}" class="btn btn-danger">
-                <i class="fa-solid fa-triangle-exclamation me-1"></i> Defaulters
-            </a>
-            <a href="{% url 'borrower_list' %}" class="btn btn-primary">
-                <i class="fa-solid fa-users me-1"></i> Borrowers
-            </a>
+
             <a href="{% url 'loan_form' %}" class="btn btn-success">
-                <i class="fa-solid fa-plus me-1"></i> Create Loan
+                <i class="fa fa-plus me-2"></i>
+                New Loan
             </a>
+
             <a href="{% url 'make_payment' %}" class="btn btn-warning">
-                <i class="fa-solid fa-money-bill-wave me-1"></i> Payments
+                <i class="fa fa-money-bill-wave me-2"></i>
+                Receive Payment
             </a>
+
+            <a href="{% url 'borrower_list' %}" class="btn btn-primary">
+                <i class="fa fa-users me-2"></i>
+                Borrowers
+            </a>
+
+            <a href="{% url 'report_center' %}" class="btn btn-danger">
+                <i class="fa fa-chart-column me-2"></i>
+                Reports
+            </a>
+
         </div>
+
     </div>
 
-    <!-- Stat Cards Row 1 -->
-    <div class="row g-3 mb-4">
-        <div class="col-xl-3 col-md-6 col-6">
+
+    <!-- STATISTICS -->
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-xl-3 col-md-6">
+
             <div class="stat-card">
-                <div class="stat-icon green"><i class="fa-solid fa-users"></i></div>
-                <div>
-                    <div class="stat-label">Total Borrowers</div>
-                    <div class="stat-value">{{ total_borrowers }}</div>
+
+                <div class="stat-icon green">
+
+                    <i class="fa-solid fa-users"></i>
+
                 </div>
+
+                <div>
+
+                    <div class="stat-label">
+                        Total Borrowers
+                    </div>
+
+                    <div class="stat-value">
+                        {{ total_borrowers }}
+                    </div>
+
+                </div>
+
             </div>
+
         </div>
-        <div class="col-xl-3 col-md-6 col-6">
+
+
+        <div class="col-xl-3 col-md-6">
+
             <div class="stat-card">
-                <div class="stat-icon blue"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-                <div>
-                    <div class="stat-label">Active Loans</div>
-                    <div class="stat-value">{{ active_loans }}</div>
+
+                <div class="stat-icon blue">
+
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+
                 </div>
+
+                <div>
+
+                    <div class="stat-label">
+                        Active Loans
+                    </div>
+
+                    <div class="stat-value">
+                        {{ active_loans }}
+                    </div>
+
+                </div>
+
             </div>
+
         </div>
-        <div class="col-xl-3 col-md-6 col-6">
+
+
+        <div class="col-xl-3 col-md-6">
+
             <div class="stat-card">
-                <div class="stat-icon gold"><i class="fa-solid fa-circle-check"></i></div>
-                <div>
-                    <div class="stat-label">Closed Loans</div>
-                    <div class="stat-value">{{ closed_loans }}</div>
+
+                <div class="stat-icon gold">
+
+                    <i class="fa-solid fa-sack-dollar"></i>
+
                 </div>
+
+                <div>
+
+                    <div class="stat-label">
+                        Loan Portfolio
+                    </div>
+
+                    <div class="stat-value">
+                        ₦{{ total_portfolio }}
+                    </div>
+
+                </div>
+
             </div>
+
         </div>
-        <div class="col-xl-3 col-md-6 col-6">
+
+
+        <div class="col-xl-3 col-md-6">
+
             <div class="stat-card">
-                <div class="stat-icon red"><i class="fa-solid fa-clock"></i></div>
-                <div>
-                    <div class="stat-label">Pending Loans</div>
-                    <div class="stat-value">{{ pending_loans }}</div>
+
+                <div class="stat-icon red">
+
+                    <i class="fa-solid fa-scale-balanced"></i>
+
                 </div>
+
+                <div>
+
+                    <div class="stat-label">
+                        Outstanding
+                    </div>
+
+                    <div class="stat-value">
+                        ₦{{ loan_balance }}
+                    </div>
+
+                </div>
+
             </div>
+
         </div>
+
     </div>
 
-    <!-- Stat Cards Row 2 -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4 col-12">
+
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-xl-4">
+
             <div class="stat-card">
-                <div class="stat-icon green"><i class="fa-solid fa-briefcase"></i></div>
-                <div>
-                    <div class="stat-label">Total Loan Portfolio</div>
-                    <div class="stat-value" style="font-size:20px;">₦{{ total_loan_portfolio }}</div>
+
+                <div class="stat-icon green">
+
+                    <i class="fa-solid fa-money-check-dollar"></i>
+
                 </div>
+
+                <div>
+
+                    <div class="stat-label">
+                        Today's Collections
+                    </div>
+
+                    <div class="stat-value">
+                        ₦{{ today_collections }}
+                    </div>
+
+                </div>
+
             </div>
+
         </div>
-        <div class="col-md-4 col-12">
+
+
+        <div class="col-xl-4">
+
             <div class="stat-card">
-                <div class="stat-icon gold"><i class="fa-solid fa-arrow-trend-up"></i></div>
-                <div>
-                    <div class="stat-label">Total Repayments</div>
-                    <div class="stat-value" style="font-size:20px;">₦{{ total_repayments }}</div>
+
+                <div class="stat-icon gold">
+
+                    <i class="fa-solid fa-circle-check"></i>
+
                 </div>
+
+                <div>
+
+                    <div class="stat-label">
+                        Closed Loans
+                    </div>
+
+                    <div class="stat-value">
+                        {{ closed_loans }}
+                    </div>
+
+                </div>
+
             </div>
+
         </div>
-        <div class="col-md-4 col-12">
+
+
+        <div class="col-xl-4">
+
             <div class="stat-card">
-                <div class="stat-icon red"><i class="fa-solid fa-scale-balanced"></i></div>
-                <div>
-                    <div class="stat-label">Loan Balance</div>
-                    <div class="stat-value" style="font-size:20px;">₦{{ loan_balance }}</div>
+
+                <div class="stat-icon red">
+
+                    <i class="fa-solid fa-clock"></i>
+
                 </div>
+
+                <div>
+
+                    <div class="stat-label">
+                        Pending Loans
+                    </div>
+
+                    <div class="stat-value">
+                        {{ pending_loans }}
+                    </div>
+
+                </div>
+
             </div>
+
         </div>
+
     </div>
 
-    <!-- Tables Row -->
-    <div class="row mb-4">
 
-        <!-- Recent Loans -->
-        <div class="col-12">
-            <div class="table-card">
-                <div class="table-card-header">
-                    <h5><i class="fa-solid fa-print me-2 text-primary"></i>Reports & Printing</h5>
-                </div>
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Borrower</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for loan in recent_loans %}
-                            <tr>
-                                <td>{{ loan.borrower }}</td>
-                                <td><strong>₦{{ loan.loan_amount }}</strong></td>
-                                <td>
-                                    {% if loan.status == 'active' %}
-                                        <span class="badge bg-success">Active</span>
-                                    {% elif loan.status == 'closed' %}
-                                        <span class="badge bg-secondary">Closed</span>
-                                    {% else %}
-                                        <span class="badge bg-warning text-dark">{{ loan.status }}</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr><td colspan="3" class="text-center text-muted py-4">No recent loans.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <!-- QUICK ACTIONS -->
+
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-header bg-white">
+
+            <h5 class="mb-0">
+
+                <i class="fa-solid fa-bolt text-warning me-2"></i>
+
+                Quick Actions
+
+            </h5>
+
         </div>
 
-        <!-- Recent Payments -->
-        <div class="col-lg-6 col-12">
-            <div class="table-card">
+        <div class="card-body">
 
-                <div class="table-card-header">
-                    <h5>
-                        <i class="fa-solid fa-money-bill-wave me-2 text-warning"></i>
-                        Recent Payments
+            <div class="row g-3">
+
+                <div class="col-lg-3">
+
+                    <a href="{% url 'loan_form' %}" class="btn btn-success w-100">
+
+                        <i class="fa fa-plus me-2"></i>
+
+                        Create Loan
+
+                    </a>
+
+                </div>
+
+                <div class="col-lg-3">
+
+                    <a href="{% url 'make_payment' %}" class="btn btn-warning w-100">
+
+                        <i class="fa fa-money-bill-wave me-2"></i>
+
+                        Receive Payment
+
+                    </a>
+
+                </div>
+
+                <div class="col-lg-3">
+
+                    <a href="{% url 'borrower_list' %}" class="btn btn-primary w-100">
+
+                        <i class="fa fa-users me-2"></i>
+
+                        Borrowers
+
+                    </a>
+
+                </div>
+
+                <div class="col-lg-3">
+
+                    <a href="{% url 'report_center' %}" class="btn btn-danger w-100">
+
+                        <i class="fa fa-chart-column me-2"></i>
+
+                        Reports
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+    <!-- RECENT LOANS & RECENT PAYMENTS -->
+
+    <div class="row g-4">
+
+        <!-- RECENT LOANS -->
+
+        <div class="col-lg-6">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+
+                    <h5 class="mb-0">
+
+                        <i class="fa-solid fa-file-invoice-dollar text-success me-2"></i>
+
+                        Recent Loans
+
                     </h5>
+
+                    <a href="{% url 'loan_register' %}"
+                    class="btn btn-sm btn-outline-success">
+
+                        View All
+
+                    </a>
+
                 </div>
 
                 <div class="table-responsive">
 
-                    <table class="table">
+                    <table class="table table-hover align-middle mb-0">
 
-                        <thead>
+                        <thead class="table-light">
+
                             <tr>
+
                                 <th>Borrower</th>
-                                <th>Date</th>
-                                <th>Amount</th>
+
+                                <th>Loan</th>
+
+                                <th>Status</th>
+
                             </tr>
+
                         </thead>
 
                         <tbody>
 
-                        {% for payment in recent_payments %}
+                        {% for loan in recent_loans %}
+
                             <tr>
 
                                 <td>
+
                                     <strong>
-                                        {{ payment.loan.borrower.first_name }}
-                                        {{ payment.loan.borrower.last_name }}
+
+                                        {{ loan.borrower.first_name }}
+
+                                        {{ loan.borrower.last_name }}
+
                                     </strong>
+
+                                    <br>
+
+                                    <small class="text-muted">
+
+                                        {{ loan.borrower.phone }}
+
+                                    </small>
+
                                 </td>
 
                                 <td>
-                                    {{ payment.payment_date|date:"d M Y" }}
+
+                                    ₦{{ loan.loan_amount|floatformat:2 }}
+
                                 </td>
 
                                 <td>
-                                    <strong style="color:var(--primary);">
-                                        ₦{{ payment.amount_paid }}
-                                    </strong>
+
+                                    {% if loan.status == "active" %}
+
+                                        <span class="badge bg-success">
+
+                                            Active
+
+                                        </span>
+
+                                    {% elif loan.status == "closed" %}
+
+                                        <span class="badge bg-secondary">
+
+                                            Closed
+
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-warning text-dark">
+
+                                            {{ loan.status|title }}
+
+                                        </span>
+
+                                    {% endif %}
+
                                 </td>
 
                             </tr>
+
                         {% empty %}
 
                             <tr>
+
                                 <td colspan="3" class="text-center text-muted py-4">
-                                    No recent payments.
+
+                                    No recent loans.
+
                                 </td>
+
                             </tr>
 
                         {% endfor %}
@@ -204,10 +449,374 @@
                 </div>
 
             </div>
+
+        </div>
+
+
+
+        <!-- RECENT PAYMENTS -->
+
+        <div class="col-lg-6">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+
+                    <h5 class="mb-0">
+
+                        <i class="fa-solid fa-money-bill-wave text-warning me-2"></i>
+
+                        Recent Payments
+
+                    </h5>
+
+                    <a href="{% url 'all_payments_report' %}"
+
+                    class="btn btn-sm btn-outline-warning">
+
+                        View All
+
+                    </a>
+
+                </div>
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>Borrower</th>
+
+                                <th>Receipt</th>
+
+                                <th>Amount</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                        {% for payment in recent_payments %}
+
+                            <tr>
+
+                                <td>
+
+                                    <strong>
+
+                                        {{ payment.loan.borrower.first_name }}
+
+                                        {{ payment.loan.borrower.last_name }}
+
+                                    </strong>
+
+                                    <br>
+
+                                    <small class="text-muted">
+
+                                        {{ payment.payment_date|date:"d M Y" }}
+
+                                    </small>
+
+                                </td>
+
+                                <td>
+
+                                    {{ payment.receipt_number }}
+
+                                </td>
+
+                                <td>
+
+                                    <strong class="text-success">
+
+                                        ₦{{ payment.amount_paid|floatformat:2 }}
+
+                                    </strong>
+
+                                </td>
+
+                            </tr>
+
+                        {% empty %}
+
+                            <tr>
+
+                                <td colspan="3"
+
+                                    class="text-center text-muted py-4">
+
+                                    No recent payments.
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
         </div>
 
     </div>
+    <!-- ANALYTICS -->
 
+    <div class="row g-4 mt-2">
+
+        <!-- Loan Status -->
+
+        <div class="col-lg-6">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header bg-white">
+
+                    <h5 class="mb-0">
+
+                        <i class="fa-solid fa-chart-pie text-primary me-2"></i>
+
+                        Loan Status
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <canvas id="loanStatusChart"></canvas>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Collections -->
+
+        <div class="col-lg-6">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header bg-white">
+
+                    <h5 class="mb-0">
+
+                        <i class="fa-solid fa-chart-column text-success me-2"></i>
+
+                        Portfolio Summary
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <canvas id="portfolioChart"></canvas>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
 </div>
 
+<style>
+
+.stat-card{
+
+    background:#fff;
+
+    border-radius:16px;
+
+    padding:22px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+    transition:.25s;
+
+    height:100%;
+
+}
+
+.stat-card:hover{
+
+    transform:translateY(-6px);
+
+    box-shadow:0 18px 35px rgba(0,0,0,.12);
+
+}
+
+.stat-icon{
+
+    width:64px;
+
+    height:64px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:25px;
+
+    color:#fff;
+
+}
+
+.green{
+
+    background:#16a34a;
+
+}
+
+.blue{
+
+    background:#2563eb;
+
+}
+
+.gold{
+
+    background:#d97706;
+
+}
+
+.red{
+
+    background:#dc2626;
+
+}
+
+.stat-label{
+    font-size:13px;
+    color:#666;
+}
+
+.stat-value{
+    font-size:28px;
+    font-weight:700;
+    color:#222;
+}
+
+.card{
+    border-radius:18px;
+}
+
+.table td{
+    vertical-align:middle;
+}
+
+@media(max-width:768px){
+    .stat-value{
+        font-size:22px;
+    }
+}
+
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+
+    // ===============================
+    // Loan Status Chart
+    // ===============================
+
+    const loanChart = document.getElementById("loanStatusChart");
+
+    if (loanChart) {
+
+        new Chart(loanChart, {
+            type: "doughnut",
+
+            data: {
+                labels: [
+                    "Active",
+                    "Closed",
+                    "Pending"
+                ],
+
+                datasets: [{
+                    data: [
+                        {{ active_loans }},
+                        {{ closed_loans }},
+                        {{ pending_loans }}
+                    ]
+                }]
+            },
+
+            options: {
+                plugins: {
+                    legend: {
+                        position: "bottom"
+                    }
+                }
+            }
+        });
+
+    }
+
+
+    // ===============================
+    // Portfolio Summary Chart
+    // ===============================
+
+    const portfolioChart = document.getElementById("portfolioChart");
+
+    if (portfolioChart) {
+
+        new Chart(portfolioChart, {
+            type: "bar",
+
+            data: {
+                labels: [
+                    "Portfolio",
+                    "Collections",
+                    "Outstanding"
+                ],
+
+                datasets: [{
+                    data: [
+                        {{ total_portfolio }},
+                        {{ total_repayments }},
+                        {{ loan_balance }}
+                    ]
+                }]
+            },
+
+            options: {
+                responsive: true,
+
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+    }
+
+</script>
 {% endblock %}
