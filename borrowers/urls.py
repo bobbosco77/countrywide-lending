@@ -51,11 +51,6 @@ urlpatterns = [
         views.loan_register_excel_view,
         name='loan_register_excel'
     ),
-    path(
-        'loan/<int:loan_id>/',
-        views.loan_detail,
-        name='loan_detail'
-    ),
 
     path(
         "loan-register/pdf/",
