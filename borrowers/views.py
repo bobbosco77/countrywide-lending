@@ -225,7 +225,7 @@ def borrower_profile(request, borrower_id):
     )
 
     total_balance = sum(
-        loan.balance()
+        loan.balance
         for loan in loans
     )
 
@@ -367,12 +367,12 @@ def loan_register(request):
     )
 
     total_paid = sum(
-        loan.total_paid()
+        loan.total_paid
         for loan in loans
     )
 
     outstanding = sum(
-        loan.balance()
+        loan.balance
         for loan in loans
     )
 
@@ -442,8 +442,8 @@ def payment_receipt(request, payment_id):
         "payment": payment,
         "loan": loan,
         "borrower": loan.borrower,
-        "total_paid": loan.total_paid(),
-        "balance": loan.balance(),
+        "total_paid": loan.total_paid,
+        "balance": loan.balance,
     }
 
     return render(
@@ -486,7 +486,7 @@ def dashboard(request):
             total=Sum("amount_paid")
         )["total"] or 0,
         "loan_balance": sum(
-            loan.balance() for loan in Loan.objects.all()
+            loan.balance for loan in Loan.objects.all()
         ),
         "recent_loans": recent_loans,
         "recent_payments": recent_payments,
@@ -522,9 +522,9 @@ def loan_detail(request, loan_id):
         .order_by("-payment_date")
     )
 
-    total_paid = loan.total_paid()
+    total_paid = loan.total_paid
     total_repayment = loan.total_repayment()
-    balance = loan.balance()
+    balance = loan.balance
 
     total_installments = schedules.count()
     paid_installments = schedules.filter(status="paid").count()
@@ -802,7 +802,7 @@ def export_loans_pdf(request):
             f"{loan.borrower.last_name}"
         )
 
-        balance = loan.balance()
+        balance = loan.balance
 
         total_portfolio += loan.loan_amount
         total_balance += balance
@@ -1122,8 +1122,8 @@ def export_loans_excel(request):
             float(loan.interest_rate),
             loan.duration_weeks,
             float(loan.total_repayment()),
-            float(loan.total_paid()),
-            float(loan.balance()),
+            float(loan.total_paid),
+            float(loan.balance),
             loan.status.title(),
             loan.start_date.strftime("%d-%m-%Y"),
         ])
@@ -1228,7 +1228,7 @@ def all_loans_report(request):
     )["total"] or Decimal("0.00")
 
     total_balance = sum(
-        loan.balance()
+        loan.balance
         for loan in loans
     )
 
