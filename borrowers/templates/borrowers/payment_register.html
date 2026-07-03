@@ -1,0 +1,606 @@
+{% extends 'borrowers/base.html' %}
+
+{% block content %}
+
+<div class="container-fluid px-0">
+
+    <!-- Top Bar -->
+    <div class="topbar">
+
+        <div>
+            <div class="page-title">
+                Payment Register
+            </div>
+
+            <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">
+                Complete payment transactions across all loans
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+
+            <a href="{% url 'payment_register_pdf' %}"
+               class="btn btn-danger">
+
+                <i class="fa-solid fa-file-pdf me-1"></i>
+
+                PDF
+
+            </a>
+
+            <a href="{% url 'payment_register_excel' %}"
+               class="btn btn-success">
+
+                <i class="fa-solid fa-file-excel me-1"></i>
+
+                Excel
+
+            </a>
+
+            <button
+                class="btn btn-primary"
+                onclick="window.print();">
+
+                <i class="fa-solid fa-print me-1"></i>
+
+                Print
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- Statistics -->
+
+    <div class="row g-3 mb-4">
+
+        <div class="col-lg-3 col-md-6">
+
+            <div class="stat-card">
+
+                <div class="stat-icon green">
+
+                    <i class="fa-solid fa-money-bill-wave"></i>
+
+                </div>
+
+                <div>
+
+                    <div class="stat-label">
+
+                        Total Collections
+
+                    </div>
+
+                    <div class="stat-value">
+
+                        ₦{{ total_collections }}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-lg-3 col-md-6">
+
+            <div class="stat-card">
+
+                <div class="stat-icon blue">
+
+                    <i class="fa-solid fa-wallet"></i>
+
+                </div>
+
+                <div>
+
+                    <div class="stat-label">
+
+                        Cash
+
+                    </div>
+
+                    <div class="stat-value">
+
+                        ₦{{ cash_total }}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-lg-3 col-md-6">
+
+            <div class="stat-card">
+
+                <div class="stat-icon gold">
+
+                    <i class="fa-solid fa-building-columns"></i>
+
+                </div>
+
+                <div>
+
+                    <div class="stat-label">
+
+                        Transfer
+
+                    </div>
+
+                    <div class="stat-value">
+
+                        ₦{{ transfer_total }}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-lg-3 col-md-6">
+
+            <div class="stat-card">
+
+                <div class="stat-icon red">
+
+                    <i class="fa-solid fa-receipt"></i>
+
+                </div>
+
+                <div>
+
+                    <div class="stat-label">
+
+                        Transactions
+
+                    </div>
+
+                    <div class="stat-value">
+
+                        {{ total_transactions }}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Search -->
+
+    <div class="card mb-4">
+
+        <div class="card-body">
+
+            <form method="get">
+
+                <div class="row g-3">
+
+                    <div class="col-lg-4">
+
+                        <input
+                            type="text"
+                            class="form-control"
+                            name="search"
+                            placeholder="Borrower / Phone / Receipt / Loan ID"
+                            value="{{ request.GET.search }}">
+
+                    </div>
+
+                    <div class="col-lg-2">
+
+                        <select
+                            name="method"
+                            class="form-select">
+
+                            <option value="">All Methods</option>
+
+                            <option value="cash">Cash</option>
+
+                            <option value="transfer">Transfer</option>
+
+                            <option value="mobile">Mobile Money</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-lg-2">
+
+                        <input
+                            type="date"
+                            name="date_from"
+                            class="form-control"
+                            value="{{ request.GET.date_from }}">
+
+                    </div>
+
+                    <div class="col-lg-2">
+
+                        <input
+                            type="date"
+                            name="date_to"
+                            class="form-control"
+                            value="{{ request.GET.date_to }}">
+
+                    </div>
+
+                    <div class="col-lg-2">
+
+                        <button
+                            class="btn btn-success w-100">
+
+                            <i class="fa-solid fa-search me-1"></i>
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+        <!-- ====================================== -->
+    <!-- PAYMENT TRANSACTIONS TABLE -->
+    <!-- ====================================== -->
+
+    <div class="table-card">
+
+        <div class="table-card-header d-flex justify-content-between align-items-center">
+
+            <h5 class="mb-0">
+
+                <i class="fa-solid fa-receipt me-2 text-success"></i>
+
+                Payment Transactions
+
+            </h5>
+
+            <span class="badge bg-primary">
+
+                {{ total_transactions }} Transaction{{ total_transactions|pluralize }}
+
+            </span>
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Receipt No</th>
+
+                        <th>Date</th>
+
+                        <th>Borrower</th>
+
+                        <th>Loan ID</th>
+
+                        <th>Method</th>
+
+                        <th>Amount</th>
+
+                        <th>Status</th>
+
+                        <th class="text-center">Actions</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for payment in payments %}
+
+                    <tr>
+
+                        <td>
+
+                            <strong>
+
+                                RCPT-{{ payment.id|stringformat:"06d" }}
+
+                            </strong>
+
+                        </td>
+
+                        <td>
+
+                            {{ payment.payment_date|date:"d M Y" }}
+
+                        </td>
+
+                        <td>
+
+                            <strong>
+
+                                {{ payment.loan.borrower.first_name }}
+                                {{ payment.loan.borrower.last_name }}
+
+                            </strong>
+
+                            <br>
+
+                            <small class="text-muted">
+
+                                {{ payment.loan.borrower.phone }}
+
+                            </small>
+
+                        </td>
+
+                        <td>
+
+                            #{{ payment.loan.id }}
+
+                        </td>
+
+                        <td>
+
+                            {% if payment.method == "cash" %}
+
+                                <span class="badge bg-success">
+
+                                    Cash
+
+                                </span>
+
+                            {% elif payment.method == "transfer" %}
+
+                                <span class="badge bg-primary">
+
+                                    Transfer
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-warning text-dark">
+
+                                    Mobile Money
+
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            <strong class="text-success">
+
+                                ₦{{ payment.amount_paid }}
+
+                            </strong>
+
+                        </td>
+
+                        <td>
+
+                            <span class="badge bg-success">
+
+                                Successful
+
+                            </span>
+
+                        </td>
+
+                        <td class="text-center">
+
+                            <div class="btn-group">
+
+                                <a
+                                    href="{% url 'payment_receipt' payment.id %}"
+                                    class="btn btn-sm btn-outline-primary">
+
+                                    <i class="fa-solid fa-eye"></i>
+
+                                </a>
+
+                                <a
+                                    href="{% url 'payment_receipt' payment.id %}"
+                                    target="_blank"
+                                    class="btn btn-sm btn-outline-success">
+
+                                    <i class="fa-solid fa-print"></i>
+
+                                </a>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="8"
+                            class="text-center py-5 text-muted">
+
+                            <i class="fa-solid fa-folder-open fa-3x mb-3"></i>
+
+                            <br>
+
+                            No payment records found.
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+        <!-- Summary Section -->
+    <div class="row mt-4">
+
+        <div class="col-lg-3 col-md-6 mb-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body text-center">
+
+                    <div class="text-muted small mb-2">
+                        Cash Collections
+                    </div>
+
+                    <h4 class="text-success mb-0">
+                        ₦{{ cash_total }}
+                    </h4>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body text-center">
+
+                    <div class="text-muted small mb-2">
+                        Transfer Collections
+                    </div>
+
+                    <h4 class="text-primary mb-0">
+                        ₦{{ transfer_total }}
+                    </h4>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+
+            <div class="card shadow-sm border-0 h-100">
+
+                <div class="card-body text-center">
+
+                    <div class="text-muted small mb-2">
+                        Mobile Money
+                    </div>
+
+                    <h4 class="text-warning mb-0">
+                        ₦{{ mobile_total }}
+                    </h4>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+
+            <div class="card shadow-sm border-0 bg-success text-white h-100">
+
+                <div class="card-body text-center">
+
+                    <div class="small mb-2">
+                        Grand Total
+                    </div>
+
+                    <h3 class="mb-0">
+                        ₦{{ total_collections }}
+                    </h3>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Footer Buttons -->
+    <div class="card mt-4">
+
+        <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
+
+            <div>
+
+                <strong>
+                    Total Transactions:
+                </strong>
+
+                {{ total_transactions }}
+
+            </div>
+
+            <div class="d-flex gap-2">
+
+                <button
+                    onclick="window.print()"
+                    class="btn btn-primary">
+
+                    <i class="fa-solid fa-print me-1"></i>
+
+                    Print Register
+
+                </button>
+
+                <a
+                    href="{% url 'payment_register_pdf' %}"
+                    class="btn btn-danger">
+
+                    <i class="fa-solid fa-file-pdf me-1"></i>
+
+                    PDF
+
+                </a>
+
+                <a
+                    href="{% url 'payment_register_excel' %}"
+                    class="btn btn-success">
+
+                    <i class="fa-solid fa-file-excel me-1"></i>
+
+                    Excel
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

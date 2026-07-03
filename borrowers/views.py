@@ -707,6 +707,203 @@ def loan_register_pdf(request):
 
 @login_required
 @role_required(lambda u: is_manager_or_superuser(u))
+def payment_register_pdf(request):
+
+    payments = (
+        Payment.objects
+        .select_related("loan", "loan__borrower")
+        .order_by("-payment_date", "-id")
+    )
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = (
+        'attachment; filename="Payment_Register.pdf"'
+    )
+
+    p = canvas.Canvas(response)
+
+    width, height = response = (595, 842)
+
+    y = 800
+
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(140, y, "COUNTRYWIDE LENDING & SERVICES")
+
+    y -= 25
+
+    p.setFont("Helvetica", 12)
+    p.drawString(220, y, "PAYMENT REGISTER")
+
+    y -= 30
+
+    p.setFont("Helvetica-Bold", 9)
+
+    p.drawString(20, y, "Receipt")
+    p.drawString(80, y, "Date")
+    p.drawString(150, y, "Borrower")
+    p.drawString(300, y, "Method")
+    p.drawString(380, y, "Amount")
+    p.drawString(470, y, "Loan")
+
+    y -= 18
+
+    p.setFont("Helvetica", 8)
+
+    total = Decimal("0.00")
+
+    for payment in payments:
+
+        if y <= 40:
+
+            p.showPage()
+
+            y = 800
+
+            p.setFont("Helvetica-Bold", 9)
+
+            p.drawString(20, y, "Receipt")
+            p.drawString(80, y, "Date")
+            p.drawString(150, y, "Borrower")
+            p.drawString(300, y, "Method")
+            p.drawString(380, y, "Amount")
+            p.drawString(470, y, "Loan")
+
+            y -= 18
+
+            p.setFont("Helvetica", 8)
+
+        borrower = (
+            payment.loan.borrower.first_name +
+            " " +
+            payment.loan.borrower.last_name
+        )
+
+        p.drawString(20, y, f"#{payment.id}")
+
+        p.drawString(
+            80,
+            y,
+            payment.payment_date.strftime("%d-%m-%Y")
+        )
+
+        p.drawString(
+            150,
+            y,
+            borrower[:24]
+        )
+
+        p.drawString(
+            300,
+            y,
+            payment.get_method_display()
+        )
+
+        p.drawString(
+            380,
+            y,
+            f"₦{payment.amount_paid:,.2f}"
+        )
+
+        p.drawString(
+            470,
+            y,
+            str(payment.loan.id)
+        )
+
+        total += payment.amount_paid
+
+        y -= 16
+
+    y -= 20
+
+    p.setFont("Helvetica-Bold", 11)
+
+    p.drawString(
+        300,
+        y,
+        f"TOTAL COLLECTIONS : ₦{total:,.2f}"
+    )
+
+    p.save()
+
+    return response
+
+@login_required
+@role_required(lambda u: is_manager_or_superuser(u))
+def payment_register_excel(request):
+
+    wb = openpyxl.Workbook()
+
+    ws = wb.active
+
+    ws.title = "Payment Register"
+
+    ws.append([
+        "Receipt No",
+        "Payment Date",
+        "Borrower",
+        "Phone",
+        "Loan ID",
+        "Method",
+        "Amount"
+    ])
+
+    payments = (
+        Payment.objects
+        .select_related("loan", "loan__borrower")
+        .order_by("-payment_date", "-id")
+    )
+
+    total = Decimal("0.00")
+
+    for payment in payments:
+
+        ws.append([
+
+            payment.id,
+
+            payment.payment_date.strftime("%d-%m-%Y"),
+
+            f"{payment.loan.borrower.first_name} {payment.loan.borrower.last_name}",
+
+            payment.loan.borrower.phone,
+
+            payment.loan.id,
+
+            payment.get_method_display(),
+
+            float(payment.amount_paid),
+
+        ])
+
+        total += payment.amount_paid
+
+    ws.append([])
+
+    ws.append([
+        "",
+        "",
+        "",
+        "",
+        "",
+        "TOTAL",
+        float(total)
+    ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    response[
+        "Content-Disposition"
+    ] = 'attachment; filename="Payment_Register.xlsx"'
+
+    wb.save(response)
+
+    return response
+
+@login_required
+@role_required(lambda u: is_manager_or_superuser(u))
 def loan_register_excel(request):
 
     wb = openpyxl.Workbook()
@@ -771,6 +968,87 @@ def loan_register_excel(request):
     wb.save(response)
 
     return response
+
+
+@login_required
+@role_required(lambda u: is_manager_or_superuser(u))
+def payment_register(request):
+
+    payments = (
+        Payment.objects
+        .select_related("loan", "loan__borrower")
+        .order_by("-payment_date", "-id")
+    )
+
+    search = request.GET.get("search")
+    method = request.GET.get("method")
+    date_from = request.GET.get("date_from")
+    date_to = request.GET.get("date_to")
+
+    if search:
+        payments = payments.filter(
+            Q(loan__borrower__first_name__icontains=search) |
+            Q(loan__borrower__last_name__icontains=search) |
+            Q(loan__borrower__phone__icontains=search) |
+            Q(loan__id__icontains=search) |
+            Q(id__icontains=search)
+        )
+
+    if method:
+        payments = payments.filter(method=method)
+
+    if date_from:
+        payments = payments.filter(payment_date__gte=date_from)
+
+    if date_to:
+        payments = payments.filter(payment_date__lte=date_to)
+
+    total_collections = (
+        payments.aggregate(
+            total=Sum("amount_paid")
+        )["total"] or Decimal("0.00")
+    )
+
+    cash_total = (
+        payments.filter(method="cash")
+        .aggregate(total=Sum("amount_paid"))["total"]
+        or Decimal("0.00")
+    )
+
+    transfer_total = (
+        payments.filter(method="transfer")
+        .aggregate(total=Sum("amount_paid"))["total"]
+        or Decimal("0.00")
+    )
+
+    mobile_total = (
+        payments.filter(method="mobile")
+        .aggregate(total=Sum("amount_paid"))["total"]
+        or Decimal("0.00")
+    )
+
+    context = {
+
+        "payments": payments,
+
+        "total_collections": total_collections,
+
+        "cash_total": cash_total,
+
+        "transfer_total": transfer_total,
+
+        "mobile_total": mobile_total,
+
+        "total_transactions": payments.count(),
+
+    }
+
+    return render(
+        request,
+        "borrowers/payment_register.html",
+        context
+    )
+
 
 @login_required
 @role_required(

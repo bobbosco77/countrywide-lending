@@ -67,7 +67,22 @@ urlpatterns = [
         views.borrowers_pdf,
         name='borrowers_pdf'
     ),
+    path(
+        "payments/register/",
+        views.payment_register,
+        name="payment_register",
+    ),
+    path(
+        "payments/register/pdf/",
+        views.payment_register_pdf,
+        name="payment_register_pdf",
+    ),
 
+    path(
+        "payments/register/excel/",
+        views.payment_register_excel,
+        name="payment_register_excel",
+    ),
 
     path(
         'payment/',
