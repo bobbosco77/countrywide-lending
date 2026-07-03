@@ -205,7 +205,7 @@ def borrower_profile(request, borrower_id):
     )
 
     total_balance = sum(
-        loan.balance()
+        loan.balance
         for loan in loans
     )
 
@@ -277,6 +277,105 @@ def create_loan(request):
         }
     )
 
+# ==================================================
+# LOAN REGISTER
+# ==================================================
+
+@login_required
+@role_required(
+    lambda u:
+    is_manager_or_superuser(u)
+    or is_cashier(u)
+    or is_loan_officer(u)
+    or is_auditor(u)
+)
+def loan_register(request):
+
+    loans = (
+        Loan.objects
+        .select_related("borrower")
+        .order_by("-start_date")
+    )
+
+    # -----------------------------
+    # Search
+    # -----------------------------
+    search = request.GET.get("search")
+
+    if search:
+        loans = loans.filter(
+            Q(borrower__first_name__icontains=search) |
+            Q(borrower__last_name__icontains=search) |
+            Q(borrower__phone__icontains=search) |
+            Q(borrower__nin__icontains=search) |
+            Q(borrower__bvn__icontains=search)
+        )
+
+    # -----------------------------
+    # Status Filter
+    # -----------------------------
+    status = request.GET.get("status")
+
+    if status:
+        loans = loans.filter(status=status)
+
+    # -----------------------------
+    # Date Filter
+    # -----------------------------
+    from_date = request.GET.get("from_date")
+    to_date = request.GET.get("to_date")
+
+    if from_date:
+        loans = loans.filter(start_date__gte=from_date)
+
+    if to_date:
+        loans = loans.filter(start_date__lte=to_date)
+
+    # -----------------------------
+    # Dashboard Statistics
+    # -----------------------------
+    total_loans = loans.count()
+
+    active_loans = loans.filter(status="active").count()
+
+    closed_loans = loans.filter(status="closed").count()
+
+    total_portfolio = (
+        loans.aggregate(
+            total=Sum("loan_amount")
+        )["total"] or Decimal("0.00")
+    )
+
+    total_paid = sum(
+        loan.total_paid
+        for loan in loans
+    )
+
+    outstanding = sum(
+        loan.balance
+        for loan in loans
+    )
+
+    context = {
+        "loans": loans,
+        "total_loans": total_loans,
+        "active_loans": active_loans,
+        "closed_loans": closed_loans,
+        "total_portfolio": total_portfolio,
+        "total_paid": total_paid,
+        "outstanding": outstanding,
+        "search": search,
+        "status": status,
+        "from_date": from_date,
+        "to_date": to_date,
+    }
+
+    return render(
+        request,
+        "borrowers/loan_register.html",
+        context,
+    )
+
 
 # ==================================================
 # PAYMENT
@@ -323,8 +422,8 @@ def payment_receipt(request, payment_id):
         "payment": payment,
         "loan": loan,
         "borrower": loan.borrower,
-        "total_paid": loan.total_paid(),
-        "balance": loan.balance(),
+        "total_paid": loan.total_paid,
+        "balance": loan.balance,
     }
 
     return render(
@@ -367,7 +466,7 @@ def dashboard(request):
             total=Sum("amount_paid")
         )["total"] or 0,
         "loan_balance": sum(
-            loan.balance() for loan in Loan.objects.all()
+            loan.balance for loan in Loan.objects.all()
         ),
         "recent_loans": recent_loans,
         "recent_payments": recent_payments,
@@ -403,9 +502,9 @@ def loan_detail(request, loan_id):
         .order_by("-payment_date")
     )
 
-    total_paid = loan.total_paid()
+    total_paid = loan.total_paid
     total_repayment = loan.total_repayment()
-    balance = loan.balance()
+    balance = loan.balance
 
     total_installments = schedules.count()
     paid_installments = schedules.filter(status="paid").count()
@@ -512,7 +611,7 @@ def loan_statement_pdf(request, loan_id):
     p.drawString(
         50,
         720,
-        f"Balance: ₦{loan.balance()}"
+        f"Balance: ₦{loan.balance}"
     )
     p.drawString(
         50,
@@ -522,6 +621,154 @@ def loan_statement_pdf(request, loan_id):
 
     p.showPage()
     p.save()
+
+    return response
+
+@login_required
+@role_required(lambda u: is_manager_or_superuser(u))
+def loan_register_pdf(request):
+
+    loans = (
+        Loan.objects
+        .select_related("borrower")
+        .order_by("-start_date")
+    )
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = (
+        'attachment; filename="Loan_Register.pdf"'
+    )
+
+    p = canvas.Canvas(response)
+
+    y = 800
+
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(180, y, "COUNTRYWIDE LENDING & SERVICES")
+
+    y -= 25
+
+    p.setFont("Helvetica", 12)
+    p.drawString(230, y, "Loan Register")
+
+    y -= 35
+
+    p.setFont("Helvetica-Bold", 10)
+
+    p.drawString(30, y, "ID")
+    p.drawString(60, y, "Borrower")
+    p.drawString(210, y, "Loan")
+    p.drawString(300, y, "Paid")
+    p.drawString(390, y, "Balance")
+    p.drawString(500, y, "Status")
+
+    y -= 20
+
+    p.setFont("Helvetica", 9)
+
+    for loan in loans:
+
+        if y <= 50:
+            p.showPage()
+
+            y = 800
+
+            p.setFont("Helvetica-Bold", 10)
+
+            p.drawString(30, y, "ID")
+            p.drawString(60, y, "Borrower")
+            p.drawString(210, y, "Loan")
+            p.drawString(300, y, "Paid")
+            p.drawString(390, y, "Balance")
+            p.drawString(500, y, "Status")
+
+            y -= 20
+
+            p.setFont("Helvetica", 9)
+
+        p.drawString(30, y, str(loan.id))
+
+        p.drawString(
+            60,
+            y,
+            f"{loan.borrower.first_name} {loan.borrower.last_name}"[:25]
+        )
+
+        p.drawString(210, y, f"₦{loan.loan_amount:,.2f}")
+        p.drawString(300, y, f"₦{loan.total_paid:,.2f}")
+        p.drawString(390, y, f"₦{loan.balance:,.2f}")
+        p.drawString(500, y, loan.status.title())
+
+        y -= 18
+
+    p.save()
+
+    return response
+
+@login_required
+@role_required(lambda u: is_manager_or_superuser(u))
+def loan_register_excel(request):
+
+    wb = openpyxl.Workbook()
+
+    ws = wb.active
+
+    ws.title = "Loan Register"
+
+    ws.append([
+        "Loan ID",
+        "Borrower",
+        "Phone",
+        "Loan Amount",
+        "Total Paid",
+        "Outstanding",
+        "Interest %",
+        "Weeks",
+        "Status",
+        "Date"
+    ])
+
+    loans = (
+        Loan.objects
+        .select_related("borrower")
+        .order_by("-start_date")
+    )
+
+    for loan in loans:
+
+        ws.append([
+
+            loan.id,
+
+            f"{loan.borrower.first_name} {loan.borrower.last_name}",
+
+            loan.borrower.phone,
+
+            float(loan.loan_amount),
+
+            float(loan.total_paid),
+
+            float(loan.balance),
+
+            float(loan.interest_rate),
+
+            loan.duration_weeks,
+
+            loan.status,
+
+            loan.start_date.strftime("%d-%m-%Y"),
+
+        ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    response[
+        "Content-Disposition"
+    ] = 'attachment; filename="Loan_Register.xlsx"'
+
+    wb.save(response)
 
     return response
 
@@ -710,7 +957,7 @@ def export_loans_pdf(request):
             f"{loan.borrower.last_name}"
         )
 
-        balance = loan.balance()
+        balance = loan.balance
 
         total_portfolio += loan.loan_amount
         total_balance += balance
@@ -995,8 +1242,8 @@ def export_loans_excel(request):
             float(loan.interest_rate),
             loan.duration_weeks,
             float(loan.total_repayment()),
-            float(loan.total_paid()),
-            float(loan.balance()),
+            float(loan.total_paid),
+            float(loan.balance),
             loan.status.title(),
             loan.start_date.strftime("%d-%m-%Y"),
         ])
@@ -1101,7 +1348,7 @@ def all_loans_report(request):
     )["total"] or Decimal("0.00")
 
     total_balance = sum(
-        loan.balance()
+        loan.balance
         for loan in loans
     )
 

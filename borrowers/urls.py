@@ -5,7 +5,6 @@ urlpatterns = [
     path('login/', views.user_login, name='login'),
 
     path('register/', views.register_borrower, name='register'),
-    path('loan/', views.create_loan, name='loan_form'),
 
     path(
         'borrower/<int:borrower_id>/',
@@ -30,7 +29,28 @@ urlpatterns = [
         views.defaulters_report,
         name='defaulters_report'
     ),
+    path(
+        'loan/', 
+        views.create_loan, 
+        name='loan_form'
+    ),
+    path(
+        'loans/',
+        views.loan_register,
+        name='loan_register'
+    ),
 
+    path(
+        'loans/pdf/',
+        views.loan_register_pdf,
+        name='loan_register_pdf'
+    ),
+
+    path(
+        'loans/excel/',
+        views.loan_register_excel,
+        name='loan_register_excel'
+    ),
     path(
         'loan/<int:loan_id>/',
         views.loan_detail,

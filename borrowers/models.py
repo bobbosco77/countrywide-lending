@@ -104,6 +104,7 @@ class Loan(models.Model):
 
         return self.total_repayment() / Decimal(self.duration_weeks)
 
+    @property
     def total_paid(self):
         """
         Sum of all payments received for this loan.
@@ -114,6 +115,7 @@ class Loan(models.Model):
 
         return total or Decimal('0.00')
 
+    @property
     def balance(self):
         """
         Outstanding loan balance.
