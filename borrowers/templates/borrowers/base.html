@@ -855,17 +855,27 @@
 
 <!-- MOBILE TOP BAR -->
 <div class="mobile-topbar">
+
     <button class="hamburger" id="sidebarToggle">
         <i class="fa-solid fa-bars"></i>
     </button>
 
     <div class="mob-logo">
+
         <div class="logo-icon">
+
             {% if company.logo %}
                 <img src="{{ company.logo.url }}" height="50">
             {% endif %}
-        <span style="color:white;font-weight:700;">{{ company.company_name }}</span>
+
+        </div>
+
+        <span style="color:white;font-weight:700;">
+            {{ company.company_name }}
+        </span>
+
     </div>
+
 </div>
 
 <!-- SIDEBAR -->
