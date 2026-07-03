@@ -179,3 +179,7 @@ class CompanySettingsAdmin(admin.ModelAdmin):
         }),
 
     )
+
+    def has_add_permission(self, request):
+        # Only allow one Company Settings record
+        return CompanySettings.objects.count() == 0
