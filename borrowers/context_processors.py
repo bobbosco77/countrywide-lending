@@ -1,6 +1,6 @@
 from borrowers.models import CompanySettings
 
-def company_details(request):
+def company_settings(request):
     company = CompanySettings.objects.first()
 
     return {
