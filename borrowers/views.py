@@ -378,6 +378,7 @@ def loan_register(request):
 
     context = {
         "loans": loans,
+        "active_loans": loans.filter(status="active").count(),
         "total_loans": total_loans,
         "active_loans": active_loans,
         "closed_loans": closed_loans,
