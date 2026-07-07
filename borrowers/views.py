@@ -1,9 +1,17 @@
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.db.models import Q, Sum
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.http import FileResponse
+from django.utils import timezone
+from .backups.restore_service import RestoreService
+
+import os
+from .backups.backup_service import BackupService
+from .models import SystemBackup
 
 from reportlab.pdfgen import canvas
 from datetime import date, timedelta
@@ -1334,4 +1342,223 @@ def report_center(request):
     return render(
         request,
         "borrowers/report_center.html"
+    )
+
+@login_required
+def backup_list(request):
+
+    backups = SystemBackup.objects.all().order_by("-created_at")
+
+    context = {
+
+        "backups": backups,
+
+        "total_backups": backups.count(),
+
+        "database_backups": backups.filter(
+            backup_type="database"
+        ).count(),
+
+        "media_backups": backups.filter(
+            backup_type="media"
+        ).count(),
+
+        "full_backups": backups.filter(
+            backup_type="full"
+        ).count(),
+
+        "mysql_backups": backups.filter(
+            backup_type="mysql"
+        ).count(),
+
+        "successful_backups": backups.filter(
+            status="success"
+        ).count(),
+
+        "failed_backups": backups.filter(
+            status="failed"
+        ).count(),
+
+        "restored_backups": backups.filter(
+            restored=True
+        ).count(),
+
+    }
+
+    return render(
+        request,
+        "borrowers/backup/backup_list.html",
+        context,
+    )
+
+
+@login_required
+def create_backup(request, backup_type):
+
+    try:
+
+        if backup_type == "database":
+
+            filepath = BackupService.create_database_backup()
+
+        elif backup_type == "media":
+
+            filepath = BackupService.create_media_backup()
+
+        elif backup_type == "mysql":
+
+            filepath = BackupService.create_mysql_backup()
+
+        else:
+
+            filepath = BackupService.create_full_backup()
+
+        relative_file = os.path.relpath(
+            filepath,
+            settings.MEDIA_ROOT
+        )
+
+        SystemBackup.objects.create(
+
+            backup_type=backup_type,
+
+            filename=os.path.basename(filepath),
+
+            file=relative_file,
+
+            size=os.path.getsize(filepath),
+
+            created_by=request.user,
+
+            status="success",
+        )
+
+        messages.success(
+            request,
+            "Backup created successfully."
+        )
+
+    except Exception as e:
+
+        SystemBackup.objects.create(
+
+            backup_type=backup_type,
+
+            filename="FAILED",
+
+            size=0,
+
+            created_by=request.user,
+
+            status="failed",
+
+            notes=str(e),
+        )
+
+        messages.error(
+            request,
+            str(e)
+        )
+
+    return redirect("backup_list")
+
+
+@login_required
+def restore_backup(request, pk):
+
+    backup = get_object_or_404(
+        SystemBackup,
+        pk=pk
+    )
+
+    try:
+
+        path = backup.file.path
+
+        if backup.backup_type in ["database", "mysql"]:
+
+            RestoreService.restore_auto_database(path)
+
+        elif backup.backup_type == "media":
+
+            RestoreService.restore_media(path)
+
+        else:
+
+            RestoreService.restore_full(path)
+
+        backup.restored = True
+
+        backup.restored_by = request.user
+
+        backup.restored_at = timezone.now()
+
+        backup.status = "restored"
+
+        backup.save()
+
+        messages.success(
+            request,
+            "Backup restored successfully."
+        )
+
+    except Exception as e:
+
+        messages.error(
+            request,
+            str(e)
+        )
+
+    return redirect("backup_list")
+
+
+@login_required
+def delete_backup(request, pk):
+
+    backup = get_object_or_404(
+        SystemBackup,
+        pk=pk
+    )
+
+    try:
+
+        if backup.file:
+
+            backup.file.delete(save=False)
+
+        backup.delete()
+
+        messages.success(
+            request,
+            "Backup deleted successfully."
+        )
+
+    except Exception as e:
+
+        messages.error(
+            request,
+            str(e)
+        )
+
+    return redirect("backup_list")
+
+
+@login_required
+def download_backup(request, pk):
+
+    backup = get_object_or_404(
+        SystemBackup,
+        pk=pk
+    )
+
+    return FileResponse(
+
+        open(
+            backup.file.path,
+            "rb"
+        ),
+
+        as_attachment=True,
+
+        filename=backup.filename,
     )

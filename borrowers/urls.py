@@ -157,4 +157,31 @@ urlpatterns = [
         views.report_center,
         name="report_center",
     ),
+    path(
+        "backups/",
+        views.backup_list,
+        name="backup_list",
+    ),
+
+    path(
+        "backups/create/<str:backup_type>/",
+        views.create_backup,
+        name="create_backup",
+    ),
+
+    path(
+        "backups/delete/<int:pk>/",
+        views.delete_backup,
+        name="delete_backup",
+    ),
+    path(
+        "backups/restore/<int:pk>/",
+        views.restore_backup,
+        name="restore_backup",
+    ),
+    path(
+        "backups/download/<int:pk>/",
+        views.download_backup,
+        name="download_backup",
+    ),
 ]

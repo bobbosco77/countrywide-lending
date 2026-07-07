@@ -2,6 +2,7 @@ from django.contrib import admin
 from .models import Borrower, Loan, RepaymentSchedule
 from .models import Payment
 from .models import CompanySettings
+from .models import SystemBackup
 
 @admin.register(Borrower)
 class BorrowerAdmin(admin.ModelAdmin):
@@ -183,3 +184,22 @@ class CompanySettingsAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         # Only allow one Company Settings record
         return CompanySettings.objects.count() == 0
+
+@admin.register(SystemBackup)
+class SystemBackupAdmin(admin.ModelAdmin):
+    list_display = (
+        "filename",
+        "backup_type",
+        "size",
+        "created_by",
+        "created_at",
+    )
+
+    list_filter = (
+        "backup_type",
+        "created_at",
+    )
+
+    search_fields = (
+        "filename",
+    )

@@ -316,3 +316,105 @@ class AuditLog(models.Model):
     def __str__(self):
         return f"{self.user} - {self.action} - {self.model_name}"
     
+
+class SystemBackup(models.Model):
+
+    BACKUP_TYPES = [
+        ("database", "Database"),
+        ("media", "Media"),
+        ("full", "Full Project"),
+        ("mysql", "MySQL Database"),
+    ]
+
+    STATUS = [
+        ("success", "Success"),
+        ("failed", "Failed"),
+        ("restored", "Restored"),
+    ]
+
+    backup_type = models.CharField(
+        max_length=20,
+        choices=BACKUP_TYPES,
+        default="full"
+    )
+
+    filename = models.CharField(
+        max_length=255,
+        unique=True
+    )
+
+    file = models.FileField(
+        upload_to="backups/"
+    )
+
+    size = models.BigIntegerField(
+        default=0
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS,
+        default="success"
+    )
+
+    notes = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    restored = models.BooleanField(
+        default=False
+    )
+
+    restored_at = models.DateTimeField(
+        blank=True,
+        null=True
+    )
+
+    restored_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="restored_backups"
+    )
+
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_backups"
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
+    class Meta:
+
+        ordering = ["-created_at"]
+
+        verbose_name = "System Backup"
+
+        verbose_name_plural = "System Backups"
+
+    @property
+    def size_mb(self):
+
+        return round(self.size / (1024 * 1024), 2)
+
+    @property
+    def extension(self):
+
+        import os
+
+        return os.path.splitext(self.filename)[1].upper()
+
+    def __str__(self):
+
+        return f"{self.filename} ({self.get_backup_type_display()})"
