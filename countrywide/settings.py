@@ -22,15 +22,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-1gov(ovzz42=*#ekm)qi6!t4$mbr=(b2d2!_(e!80hmu*(gyni'
+SECRET_KEY = os.getenv(
+    "SECRET_KEY",
+    "django-insecure-dev-key-change-me"
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = [
-    '127.0.0.1',
-    'localhost',
-    'countrywide-lending.onrender.com',
+    "127.0.0.1",
+    "localhost",
+    "countrywide-lending.onrender.com",
+    ".truehost.cloud",     # if using a Truehost subdomain
+    ".yourdomain.com",     # replace with your actual domain later
 ]
 
 # Application definition
@@ -82,8 +87,10 @@ WSGI_APPLICATION = 'countrywide.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR/'db.sqlite3'}",
+        conn_max_age=600,
+        conn_health_checks=True,
     )
 }
 
@@ -151,6 +158,9 @@ STORAGES = {
 
 CSRF_TRUSTED_ORIGINS = [
     "https://countrywide-lending.onrender.com",
+    "https://*.truehost.cloud",
+    "https://yourdomain.com",
+    "https://www.yourdomain.com",
 ]
 
 SESSION_COOKIE_SECURE = True
