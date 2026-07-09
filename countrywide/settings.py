@@ -87,11 +87,17 @@ WSGI_APPLICATION = 'countrywide.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    "default": dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR/'db.sqlite3'}",
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "countrywidemoney_db",
+        "USER": "countrywidemoney_user",
+        "PASSWORD": "countrywide2026",
+        "HOST": "localhost",
+        "PORT": "3306",
+        "OPTIONS": {
+            "charset": "utf8mb4",
+        },
+    }
 }
 
 
@@ -163,7 +169,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://www.yourdomain.com",
 ]
 
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = False  # Render already handles HTTPS
+SECURE_SSL_REDIRECT = not DEBUG  
